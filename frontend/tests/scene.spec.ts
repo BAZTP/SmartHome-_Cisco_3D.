@@ -14,8 +14,15 @@ test("escena 3D, selección, cámaras y paneles", async ({ page }) => {
         .evaluate((c: HTMLCanvasElement) => Boolean(c.getContext("webgl2"))),
     )
     .toBeTruthy();
-  await page.getByRole("button", { name: "Oficina" }).click();
+  await page.locator(".left").getByRole("button", { name: "Oficina" }).click();
   await expect(page.getByRole("heading", { name: "Oficina" })).toBeVisible();
+  await page
+    .getByRole("button", { name: "Seleccionar Cocina", exact: true })
+    .focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("heading", { name: "Cocina", exact: true }),
+  ).toBeVisible();
   for (const view of ["Superior", "Interior", "Isométrica"]) {
     await page.getByRole("button", { name: view, exact: true }).click();
     await expect(page.locator("dd").first()).toHaveText(view);
@@ -72,7 +79,7 @@ test("edición local guarda y recupera la escena en PostgreSQL", async ({
   await expect(page.getByRole("status")).toHaveText(
     "API y PostgreSQL conectados",
   );
-  await page.getByRole("button", { name: "Oficina" }).click();
+  await page.locator(".left").getByRole("button", { name: "Oficina" }).click();
   await page.getByRole("button", { name: "Superior", exact: true }).click();
   await page.getByRole("button", { name: "Guardar proyecto" }).click();
   await expect(page.getByLabel("Estado del proyecto")).toHaveText(

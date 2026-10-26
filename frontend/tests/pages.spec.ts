@@ -24,7 +24,7 @@ test("Pages funciona en la subruta del repositorio sin API", async ({
         .evaluate((c: HTMLCanvasElement) => Boolean(c.getContext("webgl2"))),
     )
     .toBeTruthy();
-  await page.getByRole("button", { name: "Oficina" }).click();
+  await page.locator(".left").getByRole("button", { name: "Oficina" }).click();
   await expect(page.getByRole("heading", { name: "Oficina" })).toBeVisible();
   await page.getByRole("button", { name: "Superior", exact: true }).click();
   await expect(page.locator("dd").first()).toHaveText("Superior");
@@ -47,30 +47,26 @@ test("Pages funciona en la subruta del repositorio sin API", async ({
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Exportar JSON" }).click();
   expect((await download).suggestedFilename()).toBe("smarthome-project.json");
-  await page
-    .getByLabel("Importar proyecto")
-    .setInputFiles({
-      name: "invalid.json",
-      mimeType: "application/json",
-      buffer: Buffer.from('{"version":99}'),
-    });
+  await page.getByLabel("Importar proyecto").setInputFiles({
+    name: "invalid.json",
+    mimeType: "application/json",
+    buffer: Buffer.from('{"version":99}'),
+  });
   await expect(page.getByLabel("Estado del proyecto")).toHaveText(
     "Archivo de proyecto inválido o incompatible",
   );
-  await page
-    .getByLabel("Importar proyecto")
-    .setInputFiles({
-      name: "project.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(
-        JSON.stringify({
-          version: 1,
-          view: "Interior",
-          walls: true,
-          selected: "Sala",
-        }),
-      ),
-    });
+  await page.getByLabel("Importar proyecto").setInputFiles({
+    name: "project.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(
+      JSON.stringify({
+        version: 1,
+        view: "Interior",
+        walls: true,
+        selected: "Sala",
+      }),
+    ),
+  });
   await expect(page.locator("dd").first()).toHaveText("Interior");
   await expect(page.getByRole("heading", { name: "Sala" })).toBeVisible();
   expect(apiRequests).toEqual([]);

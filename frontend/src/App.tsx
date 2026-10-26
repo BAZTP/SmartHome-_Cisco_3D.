@@ -14,6 +14,7 @@ import {
   PanelLeftClose,
   PanelRightClose,
 } from "lucide-react";
+import { layout } from "./Architecture";
 import House, { rooms } from "./House";
 import { useScene, type View } from "./store";
 import SceneBoundary from "./SceneBoundary";
@@ -241,6 +242,65 @@ function App() {
         </section>
         {right && (
           <aside className="right">
+            <div className="house-map">
+              <div className="paneltitle">PLANO DE LA CASA</div>
+              <p className="muted">Selecciona una zona para inspeccionarla</p>
+              <svg
+                viewBox="0 0 220 185"
+                role="img"
+                aria-label="Plano interactivo de habitaciones"
+              >
+                {rooms.map((name, i) => {
+                  const [x, z] = layout[i];
+                  return (
+                    <g
+                      key={name}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={"Seleccionar " + name}
+                      onClick={() => select(name)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          select(name);
+                        }
+                      }}
+                    >
+                      <rect
+                        x={78 + x * 16}
+                        y={64 + z * 14}
+                        width="60"
+                        height="47"
+                        rx="3"
+                        fill={selected === name ? "#12536a" : "#102737"}
+                        stroke={selected === name ? "#3ad8e5" : "#285066"}
+                      />
+                      <text
+                        x={108 + x * 16}
+                        y={90 + z * 14}
+                        textAnchor="middle"
+                        fill="#bad5df"
+                        fontSize="7"
+                      >
+                        {
+                          [
+                            "Sala",
+                            "Comedor",
+                            "Cocina",
+                            "Dorm. principal",
+                            "Dorm. 2",
+                            "Oficina",
+                            "Garaje",
+                            "Jardín",
+                            "Sala técnica",
+                          ][i]
+                        }
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
             <div className="paneltitle">
               INSPECTOR <Box size={16} />
             </div>
