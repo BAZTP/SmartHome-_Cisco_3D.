@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/smarthome}
+    username: ${DB_USER:smarthome}
+    password: ${DB_PASSWORD:local-development-only}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+server:
+  address: 127.0.0.1
+  port: ${PORT:8080}
+management:
+  endpoint:
+    health:
+      show-details: never

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ -d /workspace/tools/jdk21 ]]; then export JAVA_HOME=/workspace/tools/jdk21; export MAVEN_OPTS="${MAVEN_OPTS:-} -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts"; export PATH="$JAVA_HOME/bin:$PATH"; fi
+if command -v mvn >/dev/null; then executable=$(command -v mvn); else executable=/workspace/tools/apache-maven-3.9.11/bin/mvn; fi
+if [[ -f /workspace/tools/maven-settings.xml ]]; then exec "$executable" -s /workspace/tools/maven-settings.xml "$@"; else exec "$executable" "$@"; fi

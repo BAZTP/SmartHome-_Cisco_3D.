@@ -1,0 +1,2 @@
+CREATE TABLE network_project (id UUID PRIMARY KEY, name VARCHAR(100) NOT NULL);
+INSERT INTO network_project VALUES ('00000000-0000-0000-0000-000000000001', 'Casa de demostración');
