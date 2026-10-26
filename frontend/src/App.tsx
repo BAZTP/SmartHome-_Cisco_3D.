@@ -17,16 +17,81 @@ import {
 import House, { rooms } from "./House";
 import { useScene, type View } from "./store";
 import SceneBoundary from "./SceneBoundary";
-const staticDemo = import.meta.env.VITE_STATIC_DEMO === "true";
+import {
+  browserEdition,
+  saveScene,
+  loadScene,
+  validateScene,
+  type SceneSnapshot,
+} from "./projectStorage";
+const staticDemo = browserEdition;
 function App() {
   const { view, setView, walls, toggleWalls, selected, select } = useScene();
   const [left, L] = useState(true),
     [right, R] = useState(true);
+  const [operation, setOperation] = useState("");
+  const [busy, setBusy] = useState(false);
+  const snapshot = (): SceneSnapshot => ({ version: 1, view, walls, selected });
+  const restore = (scene: SceneSnapshot) =>
+    useScene.setState({
+      view: scene.view,
+      walls: scene.walls,
+      selected: scene.selected,
+    });
+  async function save() {
+    setBusy(true);
+    try {
+      await saveScene(snapshot());
+      setOperation(
+        staticDemo ? "Guardado en este navegador" : "Guardado en PostgreSQL",
+      );
+    } catch (e) {
+      setOperation(e instanceof Error ? e.message : "Error al guardar");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function load() {
+    setBusy(true);
+    try {
+      const scene = await loadScene();
+      if (scene) {
+        restore(scene);
+        setOperation("Proyecto cargado");
+      } else setOperation("No hay una escena guardada");
+    } catch (e) {
+      setOperation(e instanceof Error ? e.message : "Error al cargar");
+    } finally {
+      setBusy(false);
+    }
+  }
+  function exportProject() {
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(snapshot(), null, 2)], {
+        type: "application/json",
+      }),
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "smarthome-project.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  async function importProject(file?: File) {
+    if (!file) return;
+    try {
+      if (file.size > 65536) throw Error("El archivo supera 64 KB");
+      restore(validateScene(JSON.parse(await file.text())));
+      setOperation("Proyecto importado; pulsa Guardar para conservarlo");
+    } catch {
+      setOperation("Archivo de proyecto inválido o incompatible");
+    }
+  }
   const [status, S] = useState("Conectando…");
   const [project, P] = useState("Casa de demostración");
   async function connect() {
     if (staticDemo) {
-      S("Demo estática · Sin backend ni persistencia");
+      S("Versión Pages · Almacenamiento en este navegador");
       return;
     }
     S("Conectando…");
@@ -56,7 +121,11 @@ function App() {
         </div>
         <nav>
           <span className="active">Diseño</span>
-          <span>Fase 1 · Base funcional</span>
+          <span>
+            {staticDemo
+              ? "Versión navegador"
+              : "Versión local · Java + PostgreSQL"}
+          </span>
         </nav>
         <div className="phase">ENTORNO EDUCATIVO</div>
       </header>
@@ -65,7 +134,27 @@ function App() {
           <span className="dot" /> WORKSPACE <ChevronRight size={14} />{" "}
           <strong>{project}</strong>
         </div>
-        <span>Geometría local · Sin recursos externos</span>
+        <div className="project-actions">
+          <button disabled={busy} onClick={() => void save()}>
+            Guardar proyecto
+          </button>
+          <button disabled={busy} onClick={() => void load()}>
+            Cargar proyecto
+          </button>
+          <button onClick={exportProject}>Exportar JSON</button>
+          <label className="import-button">
+            Importar JSON
+            <input
+              aria-label="Importar proyecto"
+              type="file"
+              accept=".json,application/json"
+              onChange={(e) => {
+                void importProject(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        </div>
       </div>
       <main>
         {left && (
@@ -177,8 +266,9 @@ function App() {
             <div className="notice">
               <strong>Construyendo la base</strong>
               <p>
-                La edición de dispositivos, el cableado y la simulación se
-                incorporarán en las siguientes fases.
+                Se guardan la vista, las paredes y la habitación seleccionada.
+                Dispositivos, cableado y simulación pertenecen a las siguientes
+                fases.
               </p>
             </div>
             <button
@@ -186,7 +276,7 @@ function App() {
               disabled={staticDemo}
               onClick={() => void connect()}
             >
-              {staticDemo ? "Demo GitHub Pages" : "Comprobar backend"}
+              {staticDemo ? "GitHub Pages · Sin servidor" : "Comprobar backend"}
             </button>
             <p
               role="status"
@@ -201,7 +291,9 @@ function App() {
         <span>
           <span className="dot" /> Motor gráfico activo
         </span>
-        <span>Simulación de red pendiente · Fase 4</span>
+        <span aria-live="polite" aria-label="Estado del proyecto">
+          {operation || "Simulación de red pendiente · Fase 4"}
+        </span>
         <span>v0.1.0 / FASE 1</span>
       </footer>
     </div>

@@ -346,3 +346,49 @@ footer {
   border-radius: 5px;
   background: #15364a;
 }
+
+.project-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.project-actions button,
+.import-button {
+  border: 1px solid #2d5267;
+  background: #153044;
+  color: #c6d6e5;
+  padding: 7px 9px;
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
+}
+.import-button input {
+  display: none;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+@media (max-width: 700px) {
+  .projectbar {
+    height: auto;
+    min-height: 80px;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  .project-actions {
+    width: 100%;
+  }
+  footer {
+    height: auto;
+    min-height: 36px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  footer span:nth-child(2) {
+    display: block;
+    font-size: 9px;
+  }
+}

@@ -1,39 +1,86 @@
 # SmartHome Cisco 3D — Interactive Network Simulator
 
-Base funcional de la **Fase 1**, con Java 21 / Spring Boot 3.5, PostgreSQL 17 y React 19 / TypeScript / Vite / React Three Fiber. Simulador educativo independiente, sin afiliación con Cisco.
+Dos ediciones de la misma aplicación educativa, sin afiliación con Cisco:
 
-## Alcance actual
+| Edición | Ejecución | Persistencia | Requisitos |
+| --- | --- | --- | --- |
+| **Pages** | Navegador, sin API | IndexedDB del navegador y archivos JSON | Navegador con WebGL2 |
+| **Local** | React + Spring Boot Java 21 + PostgreSQL 17 | PostgreSQL y archivos JSON | Docker Compose, o JDK/Maven/Node para desarrollo |
 
-- Escena 3D generada con geometrías locales: nueve zonas y mobiliario inicial esquemático.
-- Órbita, zoom, desplazamiento, vistas isométrica, superior e interior.
-- Selección sincronizada entre escena, explorador e inspector; paredes conmutables.
-- Paneles laterales redimensionables mediante el borde inferior y ocultables desde la barra de cámara. Diseño adaptable a pantallas pequeñas.
-- API de listado de proyectos, proyecto inicial persistido mediante Flyway, indicador de conexión real a la API y PostgreSQL.
-- Interfaz oscura con errores de conectividad visibles y botón de reintento.
+Ambas comparten interfaz y formato de escena. No se duplican fuentes ni se mantienen ramas incompatibles. El comando de compilación selecciona la edición.
 
-Las categorías del catálogo anuncian la Fase 2 y no son controles de edición. No se implementan aún dispositivos, conexiones, simulación, CLI, guardado de escenas, WebSocket ni gráficos de tráfico. Sus dependencias base están disponibles. Las habitaciones del modelo aún son geometrías estáticas del frontend; solo el proyecto inicial se almacena en PostgreSQL.
+## Funcionalidades disponibles
 
-## Requisitos
+Casa 3D esquemática de nueve zonas y mobiliario generado por código; órbita, zoom, desplazamiento, vistas isométrica/superior/interior, selección de habitaciones, paredes conmutables y paneles laterales redimensionables/ocultables. Interfaz adaptable con mensajes de errores visibles.
 
-JDK **21 completo** (no solo JRE), Maven 3.9+, Node 22.12+ o 24, Docker con Compose y navegador con WebGL2. No se necesitan servicios de pago ni credenciales externas. El contenedor de base de datos se limita a loopback.
+**Guardar proyecto** conserva la vista predefinida, visibilidad de paredes y habitación seleccionada. **Cargar proyecto** recupera explícitamente esa escena, incluso después de recargar. No se guarda automáticamente; tampoco se guarda aún la posición libre de la cámara al orbitar. Exportar/importar JSON permite trasladar ese estado entre ambas ediciones. Importar no guarda hasta pulsar Guardar. Solo hay una escena por edición en esta fase.
 
-## Inicio local
+El catálogo, dispositivos editables, conexiones, simulación IPv4, CLI, tráfico, cámaras e IoT siguen pendientes. Esta entrega prepara ambas versiones de la base funcional; no declara completadas las siete fases del simulador.
 
-Desde la raíz del repositorio:
+## Versión GitHub Pages
+
+El workflow `.github/workflows/pages.yml` ejecuta `npm ci` y `npm run build:pages`, y publica `frontend/dist` al recibir cambios en `main`. Se puede ejecutar manualmente desde Actions.
+
+En GitHub, configura **Settings → Pages → Build and deployment → Source: GitHub Actions**. Si el repositorio es privado, Pages depende del plan de GitHub. Tras un despliegue correcto, la dirección esperada es `https://baztp.github.io/SmartHome-_Cisco_3D./`.
+
+Los recursos usan rutas relativas y React Router usa hash; las recargas funcionan bajo la ruta del repositorio. No se envían peticiones a `/api` en esta edición. El estado se guarda en IndexedDB con el origen del sitio: borrar datos del navegador, cambiar de navegador o usar otro equipo no conserva ese estado. Exporta JSON como respaldo. Si el almacenamiento está bloqueado, la aplicación muestra un error de guardado; no simula un resultado exitoso.
+
+Para desarrollar o probar Pages sin Docker ni Java:
+
+```bash
+cd frontend
+npm ci
+npm run dev:pages
+# O compilar y servir:
+npm run build:pages
+npm run preview -- --port 4173
+```
+
+`frontend/.env.pages` define `VITE_APP_MODE=pages`. No contiene secretos. IndexedDB funciona al servir por HTTP local o HTTPS, no abriendo `index.html` como archivo.
+
+## Versión local con un comando
+
+Instala Docker con Compose. Desde la raíz:
 
 ```bash
 cp .env.example .env
-docker compose up -d --wait
+docker compose --profile local up -d --build
 ```
 
-En un terminal:
+Abre `http://localhost:8088`. El primer arranque descarga imágenes y dependencias; la API puede necesitar unos segundos adicionales. Los contenedores incluyen Node/Maven/JDK durante la compilación; no tienes que instalarlos en tu sistema.
+
+```bash
+docker compose --profile local logs -f backend
+curl http://localhost:8088/actuator/health
+curl http://localhost:8088/api/projects
+```
+
+Nginx sirve el frontend local y redirige API y OpenAPI al contenedor Java. PostgreSQL conserva los datos en un volumen. Flyway crea el proyecto inicial y migra el campo de escena. La interfaz muestra “API y PostgreSQL conectados” cuando puede consultar el proyecto.
+
+Los valores predeterminados son exclusivamente de desarrollo local. Personaliza `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT` y `WEB_PORT` en `.env`. No lo subas a Git. Compose conecta automáticamente el backend a PostgreSQL. Cambiar la contraseña en `.env` no modifica un rol de un volumen PostgreSQL ya inicializado.
+
+Para parar conservando datos:
+
+```bash
+docker compose --profile local stop
+```
+
+No uses `down -v` si quieres conservarlos. No expongas esta versión de desarrollo a Internet: no incluye autenticación multiusuario.
+
+## Desarrollo local sin contenedores de aplicación
+
+Requiere **JDK 21 completo**, Maven 3.9+, Node 22.12+ o 24 y Docker para PostgreSQL.
+
+```bash
+docker compose up -d --wait postgres
+```
+
+En terminales separados:
 
 ```bash
 cd backend
 mvn spring-boot:run
 ```
-
-En otro terminal:
 
 ```bash
 cd frontend
@@ -41,81 +88,56 @@ npm ci
 npm run dev
 ```
 
-Abrir el puerto 5173 en el navegador local. Vite redirige `/api` y `/actuator` al backend del puerto 8080. La API escucha solo en loopback. OpenAPI se sirve en el backend en `/v3/api-docs` y Swagger UI en `/swagger-ui/index.html`.
+Abre el puerto 5173. Vite redirige `/api` y `/actuator` al backend 8080. `npm run build:local` genera la versión para el despliegue con Nginx. No definas `VITE_STATIC_DEMO=true` (compatibilidad con la edición anterior) al compilar la versión local.
 
-La contraseña predeterminada es exclusivamente de desarrollo local. Para cambiarla, configura `DB_USER`, `DB_PASSWORD` y `DB_URL` en el proceso del backend; Compose lee `.env`, pero Spring Boot no lo carga automáticamente. `DB_PORT` cambia el puerto publicado de Compose y debe reflejarse en `DB_URL`. No subas `.env` al repositorio. Cambiar las credenciales de un volumen PostgreSQL existente no actualiza sus roles automáticamente.
+Spring Boot no carga `.env` automáticamente fuera de Compose. Si personalizas la base de datos, exporta `DB_URL`, `DB_USER` y `DB_PASSWORD` en el proceso Java. La URL predeterminada es `jdbc:postgresql://localhost:5432/smarthome`.
 
-## Entorno de nube preparado
+## API
 
-Maven y el JDK completo se conservan en `/workspace/tools`. El ayudante `scripts/mvn` activa estas herramientas y la configuración del proxy de la nube, sin almacenar credenciales. Desde `backend`, usa `../scripts/mvn verify` o `../scripts/mvn spring-boot:run`. La caché de npm es escribible con `npm ci --cache /workspace/.npm-cache`.
+- `GET /api/projects`: proyecto de demostración.
+- `GET /api/projects/{id}/scene`: escena guardada; respuesta vacía si nunca se guardó.
+- `PUT /api/projects/{id}/scene`: reemplaza la escena validada, responde 204.
+- `GET /actuator/health`: disponibilidad del backend y PostgreSQL.
+- `/v3/api-docs` y `/swagger-ui/index.html`: documentación OpenAPI.
 
-## Validación
+Formato compartido:
 
-Con PostgreSQL iniciado:
-
-```bash
-cd backend
-mvn verify
-cd ../frontend
-npm run build
+```json
+{"version":1,"view":"Superior","walls":false,"selected":"Oficina"}
 ```
 
-Las dos pruebas JUnit levantan una API HTTP real contra PostgreSQL y comprueban migración, proyecto inicial y salud. **Usar una base de datos de desarrollo/prueba**, pues Flyway aplica migraciones. Se incluyen Mockito y Spring Test mediante el starter de pruebas.
+## Pruebas
 
-Con frontend y backend ejecutándose:
+Con PostgreSQL iniciado, `cd backend && mvn verify` ejecuta pruebas HTTP de migraciones, salud, guardado/carga y rechazo de escenas inválidas/proyectos inexistentes. Usa una base de datos de desarrollo/pruebas, pues Flyway aplica migraciones y las pruebas escriben la escena del proyecto inicial.
+
+En `frontend`:
 
 ```bash
-cd frontend
+npm run build:local
+# Con Vite local y backend iniciados:
 npx playwright test
+# Contra los contenedores locales:
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:8088 npx playwright test
+# Con el artefacto Pages servido en la subruta del repositorio del puerto 4173:
+npx playwright test --config playwright.pages.config.ts
 ```
 
-La configuración de navegador usa `/usr/bin/chromium` y renderizado por software para el entorno de nube. En otra máquina adapta `executablePath` a tu instalación de Chromium o usa los navegadores de Playwright. La prueba verifica WebGL, conexión al backend, selección, cambios de vista, paredes, paneles, interacciones de cámara y ancho móvil. No valida aún funcionalidades de fases posteriores.
+La prueba Pages valida ausencia de peticiones a la API, WebGL, controles, persistencia tras recargar, exportación e importación válida/inválida. Las pruebas locales validan interfaz, conexión, errores y persistencia PostgreSQL. La configuración usa Chromium en `/usr/bin/chromium`; adapta `executablePath` o instala el navegador de Playwright en otro equipo.
 
-## Arquitectura
+## Estructura
 
-```text
-backend/
-  src/main/java/com/smarthome/
-    controller/  # API REST
-    service/     # Casos de uso y transacciones
-    domain/      # Entidades JPA
-    repository/  # Acceso a PostgreSQL
-    dto/         # Contratos HTTP
-  src/main/resources/db/migration/ # Flyway
-  src/test/     # Integración HTTP y base de datos
-frontend/
-  src/House.tsx # Escena, geometría, cámara e interacción
-  src/store.ts  # Estado de vistas y selección con Zustand
-  src/App.tsx   # Composición de la interfaz y estado de API
-  src/main.tsx  # Punto de entrada, React Router
-  src/SceneBoundary.tsx # Recuperación de errores de renderizado
-  src/style.css # Tailwind y estilos de la interfaz
-  tests/        # Prueba de navegador
-compose.yaml    # PostgreSQL con volumen y healthcheck
-```
+- `frontend/src/House.tsx`: geometrías y controles 3D.
+- `frontend/src/App.tsx`: interfaz compartida.
+- `frontend/src/store.ts`: estado de escena con Zustand.
+- `frontend/src/projectStorage.ts`: selección del almacenamiento IndexedDB/API y formato JSON.
+- `backend/src/main/java/com/smarthome/`: controladores, servicios, dominio, DTO y repositorios.
+- `backend/src/main/resources/db/migration/`: migraciones Flyway.
+- `backend/Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`: despliegue local.
+- `compose.yaml`: servicios y perfil `local`.
+- `ANTIGRAVITY.md`: guía para continuar el trabajo en Antigravity.
 
-## Apagado
+En el entorno de nube actual, `scripts/mvn` activa el JDK y Maven conservados en `/workspace/tools`. `scripts/setup-cloud.sh` prepara dependencias, arranca PostgreSQL y valida backend/frontend con el proxy del entorno. No es necesario para un equipo local con Docker.
 
-Detén frontend y backend con Ctrl+C; `docker compose stop` conserva los datos. `docker compose down` elimina contenedores y red, conservando el volumen. No utilices `down -v` si deseas conservar proyectos.
+## Pendiente
 
-## Siguiente fase
-
-Implementar entidades Room, NetworkDevice y posiciones 3D; catálogo con arrastre, selección, movimiento, rotación y CRUD validado. Añadir pruebas de persistencia y recuperación antes de introducir interfaces y cableado en la Fase 3. El motor de redes y sus pruebas deterministas pertenecen a la Fase 4.
-
-## GitHub Pages
-
-El workflow `.github/workflows/pages.yml` compila y despliega el frontend con cada push a `main` y permite ejecución manual. En GitHub, abre **Settings → Pages → Build and deployment → Source: GitHub Actions**. Si el repositorio es privado, la disponibilidad de Pages depende del plan de GitHub.
-
-La dirección esperada, después de un despliegue correcto, es `https://baztp.github.io/SmartHome-_Cisco_3D./`. Los recursos utilizan rutas relativas y React Router usa hash para admitir recargas desde Pages.
-
-Esta publicación ejecuta la escena 3D y sus controles en modo demostración. Muestra explícitamente que no dispone de backend ni persistencia y no intenta conectarse a `/api/projects`. GitHub Pages no ejecuta Java, Docker ni PostgreSQL. Para utilizar la API y la base de datos, sigue las instrucciones locales anteriores; alojar e integrar el backend remoto queda pendiente.
-
-Para probar el mismo artefacto localmente:
-
-```bash
-cd frontend
-VITE_STATIC_DEMO=true npm run build
-npm run preview -- --port 4173
-```
-
-Para volver al modo local con backend, ejecuta `npm run dev` o recompila sin `VITE_STATIC_DEMO`.
+Implementar Fase 2 (catálogo, entidades Room/NetworkDevice, posiciones 3D, movimiento y edición), seguida de cableado y simulación. Mantener contratos comunes y pruebas en las dos ediciones. El paquete gráfico todavía genera una advertencia por tamaño; optimizar carga diferida antes de ampliar escenas.

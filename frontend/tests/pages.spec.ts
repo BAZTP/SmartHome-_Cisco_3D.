@@ -11,10 +11,10 @@ test("Pages funciona en la subruta del repositorio sin API", async ({
   });
   await page.goto("./");
   await expect(page.getByRole("status")).toHaveText(
-    "Demo estática · Sin backend ni persistencia",
+    "Versión Pages · Almacenamiento en este navegador",
   );
   await expect(
-    page.getByRole("button", { name: "Demo GitHub Pages" }),
+    page.getByRole("button", { name: "GitHub Pages · Sin servidor" }),
   ).toBeDisabled();
   await expect(page.locator("canvas")).toBeVisible();
   await expect
@@ -30,9 +30,49 @@ test("Pages funciona en la subruta del repositorio sin API", async ({
   await expect(page.locator("dd").first()).toHaveText("Superior");
   await page.getByRole("button", { name: "Ocultar paredes" }).click();
   await expect(page.locator("dd").nth(1)).toHaveText("Ocultas");
+  await page.getByRole("button", { name: "Guardar proyecto" }).click();
+  await expect(page.getByLabel("Estado del proyecto")).toHaveText(
+    "Guardado en este navegador",
+  );
+  await page.getByRole("button", { name: "Isométrica", exact: true }).click();
+  await page.getByRole("button", { name: "Cargar proyecto" }).click();
+  await expect(page.locator("dd").first()).toHaveText("Superior");
   await page.goto("./#/");
   await page.reload();
   await expect(page.locator("canvas")).toBeVisible();
+  await page.getByRole("button", { name: "Cargar proyecto" }).click();
+  await expect(page.locator("dd").first()).toHaveText("Superior");
+  await expect(page.getByRole("heading", { name: "Oficina" })).toBeVisible();
+  await expect(page.locator("dd").nth(1)).toHaveText("Ocultas");
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Exportar JSON" }).click();
+  expect((await download).suggestedFilename()).toBe("smarthome-project.json");
+  await page
+    .getByLabel("Importar proyecto")
+    .setInputFiles({
+      name: "invalid.json",
+      mimeType: "application/json",
+      buffer: Buffer.from('{"version":99}'),
+    });
+  await expect(page.getByLabel("Estado del proyecto")).toHaveText(
+    "Archivo de proyecto inválido o incompatible",
+  );
+  await page
+    .getByLabel("Importar proyecto")
+    .setInputFiles({
+      name: "project.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(
+        JSON.stringify({
+          version: 1,
+          view: "Interior",
+          walls: true,
+          selected: "Sala",
+        }),
+      ),
+    });
+  await expect(page.locator("dd").first()).toHaveText("Interior");
+  await expect(page.getByRole("heading", { name: "Sala" })).toBeVisible();
   expect(apiRequests).toEqual([]);
   expect(errors).toEqual([]);
 });

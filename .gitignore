@@ -6,3 +6,4 @@ target/
 test-results/
 playwright-report/
 *.tsbuildinfo
+.env.*.local

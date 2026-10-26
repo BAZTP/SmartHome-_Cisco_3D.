@@ -64,3 +64,25 @@ test("muestra fallo de API y permite recuperar la conexión", async ({
     "API y PostgreSQL conectados",
   );
 });
+
+test("edición local guarda y recupera la escena en PostgreSQL", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByRole("status")).toHaveText(
+    "API y PostgreSQL conectados",
+  );
+  await page.getByRole("button", { name: "Oficina" }).click();
+  await page.getByRole("button", { name: "Superior", exact: true }).click();
+  await page.getByRole("button", { name: "Guardar proyecto" }).click();
+  await expect(page.getByLabel("Estado del proyecto")).toHaveText(
+    "Guardado en PostgreSQL",
+  );
+  await page.reload();
+  await page.getByRole("button", { name: "Cargar proyecto" }).click();
+  await expect(page.getByLabel("Estado del proyecto")).toHaveText(
+    "Proyecto cargado",
+  );
+  await expect(page.locator("dd").first()).toHaveText("Superior");
+  await expect(page.getByRole("heading", { name: "Oficina" })).toBeVisible();
+});
