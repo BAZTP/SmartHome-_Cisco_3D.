@@ -1,7 +1,8 @@
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, Grid } from "@react-three/drei";
+import { OrbitControls, Grid, Html } from "@react-three/drei";
 import { useEffect, useRef } from "react";
 import type { OrbitControls as Controls } from "three-stdlib";
+import Furniture from "./Furniture";
 import { useScene } from "./store";
 export const rooms = [
   "Sala",
@@ -40,7 +41,7 @@ function Scene() {
         ? [0, 22, 0.01]
         : view === "Interior"
           ? [0, 2.8, 7]
-          : [15, 15, 18]) as [number, number, number]),
+          : [0.5, 16, 16]) as [number, number, number]),
     );
     controls.current?.target.set(0, 0, 0);
     controls.current?.update();
@@ -48,10 +49,11 @@ function Scene() {
   return (
     <>
       <color attach="background" args={["#0a1422"]} />
-      <ambientLight intensity={1.3} />
+      <ambientLight intensity={0.8} />
       <directionalLight
         position={[8, 18, 6]}
-        intensity={2.5}
+        intensity={2.2}
+        color="#ffdfb1"
         castShadow
         shadow-mapSize={[2048, 2048]}
       />
@@ -81,7 +83,7 @@ function Scene() {
                     ? "#247f95"
                     : i === 7
                       ? "#294c3b"
-                      : "#33475a"
+                      : "#9c8871"
                 }
               />
             </mesh>
@@ -90,51 +92,30 @@ function Scene() {
                 <Box
                   position={[0, 0.85, -1.7]}
                   size={[4, 1.6, 0.12]}
-                  color="#8da7b5"
+                  color="#d1c7b4"
                 />
                 <Box
                   position={[-2, 0.85, 0]}
                   size={[0.12, 1.6, 3.4]}
-                  color="#6d8798"
+                  color="#a79f91"
                 />
               </>
             )}
-            {i === 0 ? (
-              <>
-                <Box
-                  position={[0, 0.4, -0.5]}
-                  size={[2, 0.65, 0.8]}
-                  color="#306c83"
-                />
-                <Box
-                  position={[0, 0.27, 0.7]}
-                  size={[1.4, 0.4, 0.65]}
-                  color="#b89168"
-                />
-              </>
-            ) : i === 7 ? (
-              <>
-                {[-1, 1].map((n) => (
-                  <mesh key={n} position={[n, 0.65, 0]}>
-                    <sphereGeometry args={[0.65, 16, 16]} />
-                    <meshStandardMaterial color="#3a9969" />
-                  </mesh>
-                ))}
-              </>
-            ) : (
-              <>
-                <Box
-                  position={[0.2, 0.4, -0.5]}
-                  size={[2, 0.65, 1]}
-                  color={i === 3 || i === 4 ? "#7396ba" : "#566f83"}
-                />
-                <Box
-                  position={[0.2, 0.8, -0.5]}
-                  size={[1.8, 0.1, 0.85]}
-                  color="#b7c8cc"
-                />
-              </>
-            )}
+            <Furniture room={i} />
+            <pointLight
+              position={[0, 2, 0]}
+              color="#ffcf8b"
+              intensity={6}
+              distance={5}
+            />
+            <Html
+              position={[0, 0.2, 1.4]}
+              center
+              distanceFactor={18}
+              style={{ pointerEvents: "none" }}
+            >
+              <span className="room-tag">{room}</span>
+            </Html>
           </group>
         );
       })}
@@ -150,7 +131,11 @@ function Scene() {
 }
 export default function House() {
   return (
-    <Canvas shadows camera={{ position: [15, 15, 18], fov: 45 }} dpr={[1, 1.5]}>
+    <Canvas
+      shadows
+      camera={{ position: [0.5, 16, 16], fov: 45 }}
+      dpr={[1, 1.5]}
+    >
       <Scene />
     </Canvas>
   );

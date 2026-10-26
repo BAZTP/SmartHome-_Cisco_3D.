@@ -287,6 +287,28 @@ function App() {
           </aside>
         )}
       </main>
+      <section className="workbench" aria-label="Herramientas de simulación">
+        <article>
+          <h3>Consola Cisco · CLI</h3>
+          <code>SmartHome&gt; _</code>
+          <p>El parser de comandos se incorporará en la fase 5.</p>
+        </article>
+        <article>
+          <h3>Simulación de tráfico</h3>
+          <div className="empty-chart" />
+          <p>Sin eventos de simulación. No hay tráfico virtual registrado.</p>
+        </article>
+        <article>
+          <h3>Pruebas de conectividad</h3>
+          <strong>Sin topología configurada</strong>
+          <p>Ping y traceroute estarán disponibles con el motor de redes.</p>
+        </article>
+        <article>
+          <h3>Cámaras de seguridad</h3>
+          <div className="camera-empty">◉ Sin cámaras virtuales</div>
+          <p>Las vistas de cámaras se incorporarán en la fase 6.</p>
+        </article>
+      </section>
       <footer>
         <span>
           <span className="dot" /> Motor gráfico activo
