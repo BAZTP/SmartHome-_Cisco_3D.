@@ -8,10 +8,12 @@ test("escena 3D, selección, cámaras y paneles", async ({ page }) => {
   );
   await expect(page.locator("canvas")).toBeVisible();
   await expect
-    .poll(() =>
-      page
-        .locator("canvas")
-        .evaluate((c: HTMLCanvasElement) => Boolean(c.getContext("webgl2"))),
+    .poll(
+      () =>
+        page
+          .locator("canvas")
+          .evaluate((c: HTMLCanvasElement) => Boolean(c.getContext("webgl2"))),
+      { timeout: 15000 },
     )
     .toBeTruthy();
   await page.locator(".left").getByRole("button", { name: "Oficina" }).click();
@@ -81,6 +83,9 @@ test("edición local guarda y recupera la escena en PostgreSQL", async ({
   );
   await page.locator(".left").getByRole("button", { name: "Oficina" }).click();
   await page.getByRole("button", { name: "Superior", exact: true }).click();
+  await page.getByRole('button',{name:'Ejecutar ping',exact:true}).click();
+  await expect(page.getByLabel('Resultado de simulación')).toContainText('Respuesta ICMP');
+  await page.getByRole('button',{name:'Desconectar sl',exact:true}).click();
   await page.getByRole("button", { name: "Guardar proyecto" }).click();
   await expect(page.getByLabel("Estado del proyecto")).toHaveText(
     "Guardado en PostgreSQL",
@@ -90,6 +95,10 @@ test("edición local guarda y recupera la escena en PostgreSQL", async ({
   await expect(page.getByLabel("Estado del proyecto")).toHaveText(
     "Proyecto cargado",
   );
+  await expect(page.getByRole('button',{name:'Desconectar sl',exact:true})).toHaveCount(0);
+  await page.getByLabel('Dispositivo de red').selectOption('PC');
+  await page.getByRole('button',{name:'Ejecutar ping',exact:true}).click();
+  await expect(page.getByLabel('Resultado de simulación')).toContainText('Sin enlace');
   await expect(page.locator("dd").first()).toHaveText("Superior");
   await expect(page.getByRole("heading", { name: "Oficina" })).toBeVisible();
 });

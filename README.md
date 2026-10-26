@@ -13,9 +13,9 @@ Ambas comparten interfaz y formato de escena. No se duplican fuentes ni se manti
 
 Casa 3D esquemática de nueve zonas y mobiliario generado por código; órbita, zoom, desplazamiento, vistas isométrica/superior/interior, selección de habitaciones, paredes conmutables y paneles laterales redimensionables/ocultables. Interfaz adaptable con mensajes de errores visibles.
 
-**Guardar proyecto** conserva la vista predefinida, visibilidad de paredes y habitación seleccionada. **Cargar proyecto** recupera explícitamente esa escena, incluso después de recargar. No se guarda automáticamente; tampoco se guarda aún la posición libre de la cámara al orbitar. Exportar/importar JSON permite trasladar ese estado entre ambas ediciones. Importar no guarda hasta pulsar Guardar. Solo hay una escena por edición en esta fase.
+**Guardar proyecto** conserva la vista predefinida, visibilidad de paredes, habitación seleccionada, dispositivos y enlaces. **Cargar proyecto** recupera explícitamente esa escena, incluso después de recargar. No se guarda automáticamente; tampoco se guarda aún la posición libre de la cámara al orbitar. Exportar/importar JSON permite trasladar ese estado entre ambas ediciones. Importar no guarda hasta pulsar Guardar. Solo hay una escena por edición en esta fase.
 
-El catálogo, dispositivos editables, conexiones, simulación IPv4, CLI, tráfico, cámaras e IoT siguen pendientes. Esta entrega prepara ambas versiones de la base funcional; no declara completadas las siete fases del simulador.
+El laboratorio incluye catálogo, edición de dispositivos, conexiones Ethernet y ping LAN. El apartado final detalla las funciones soportadas y las fases que siguen pendientes.
 
 ## Versión GitHub Pages
 
@@ -140,4 +140,18 @@ En el entorno de nube actual, `scripts/mvn` activa el JDK y Maven conservados en
 
 ## Pendiente
 
-Implementar Fase 2 (catálogo, entidades Room/NetworkDevice, posiciones 3D, movimiento y edición), seguida de cableado y simulación. Mantener contratos comunes y pruebas en las dos ediciones. El paquete gráfico todavía genera una advertencia por tamaño; optimizar carga diferida antes de ampliar escenas.
+Completar arrastre de dispositivos, interfaces independientes y simulación avanzada. Mantener contratos comunes y pruebas en las dos ediciones. El paquete gráfico todavía genera una advertencia por tamaño; optimizar carga diferida antes de ampliar escenas.
+
+## Actualización del laboratorio de red
+
+El renderizado ahora usa antialiasing y densidad de píxeles hasta 2×. El panel inferior permite agregar dispositivos, seleccionarlos también en 3D, cambiar habitación, moverlos mediante controles X/Z, rotarlos, renombrarlos, configurar IPv4/prefijo, apagarlos y eliminarlos. Las conexiones Ethernet seleccionan puertos y rechazan puertos ocupados, bucles directos y dispositivos inexistentes. Los cables muestran estado y resaltan el recorrido del último ping.
+
+La escena guardada incluye ahora el campo opcional `network` con dispositivos y enlaces. Los archivos anteriores siguen admitidos y recuperan la LAN de demostración. La exportación/importación admite hasta 256 KB. Pages usa IndexedDB; la edición local usa PostgreSQL. La demostración inicial es Router → Switch → PC y Laptop.
+
+El ping educativo de una LAN se calcula en TypeScript en Pages y mediante `POST /api/simulation/ping` en Java en la versión local. Comprueba energía, IP duplicada, subred bidireccional y un recorrido por switches/access points. No proporciona latencias ficticias ni ejecuta comandos del anfitrión. Un router o firewall todavía no reenvía paquetes entre subredes.
+
+CLI disponible: `?`, `enable`, `disable`, `configure terminal`, `exit`, `end`, `hostname`, `show interfaces`, `show running-config`, `shutdown`, `no shutdown` y `ping IP`. La CLI se interpreta en el navegador en ambas ediciones; el ping usa el motor correspondiente. `shutdown` afecta al dispositivo completo, no a una interfaz individual. Guardar proyecto persiste los cambios.
+
+**Todavía pendientes:** arrastre libre de dispositivos, interfaces con configuración independiente, topología React Flow, traceroute, animación paso a paso, parser CLI Java completo, VLAN, DHCP, rutas estáticas, NAT/PAT, reglas firewall, WebSocket, métricas, cámaras e IoT funcionales. Los modelos de cámara y bombilla del catálogo son dispositivos de red genéricos, sin vídeo ni control de iluminación. Estas funciones no deben declararse completas.
+
+Prueba del motor del navegador: `node --experimental-strip-types --test tests/network.test.ts` desde `frontend` con Node 24. `mvn verify` incluye la persistencia de la topología y el ping Java conectado/desconectado.

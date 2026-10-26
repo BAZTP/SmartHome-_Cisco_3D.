@@ -3,6 +3,7 @@ import { OrbitControls, Html, ContactShadows } from "@react-three/drei";
 import { useEffect, useRef } from "react";
 import type { OrbitControls as Controls } from "three-stdlib";
 import { Floor, Walls, Grounds, layout } from "./Architecture";
+import NetworkScene from "./NetworkScene";
 import Furniture from "./Furniture";
 import { useScene } from "./store";
 export const rooms = [
@@ -58,7 +59,7 @@ function Scene() {
         scale={22}
         blur={2}
         far={5}
-        resolution={512}
+        resolution={1024}
       />
       {rooms.map((room, i) => {
         const [x, z] = layout[i];
@@ -88,6 +89,7 @@ function Scene() {
           </group>
         );
       })}
+      <NetworkScene />
       <OrbitControls
         ref={controls}
         makeDefault
@@ -100,7 +102,12 @@ function Scene() {
 }
 export default function House() {
   return (
-    <Canvas shadows camera={{ position: [0, 16, 14], fov: 48 }} dpr={[1, 1.5]}>
+    <Canvas
+      shadows
+      camera={{ position: [0, 16, 14], fov: 48 }}
+      dpr={[1, 2]}
+      gl={{ antialias: true }}
+    >
       <Scene />
     </Canvas>
   );

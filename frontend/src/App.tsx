@@ -1,3 +1,5 @@
+import NetworkEditor from "./NetworkEditor";
+import { useNetwork, demo } from "./network";
 import { useEffect, useState } from "react";
 import {
   Network,
@@ -27,18 +29,27 @@ import {
 } from "./projectStorage";
 const staticDemo = browserEdition;
 function App() {
+  const network = useNetwork();
   const { view, setView, walls, toggleWalls, selected, select } = useScene();
   const [left, L] = useState(true),
     [right, R] = useState(true);
   const [operation, setOperation] = useState("");
   const [busy, setBusy] = useState(false);
-  const snapshot = (): SceneSnapshot => ({ version: 1, view, walls, selected });
-  const restore = (scene: SceneSnapshot) =>
+  const snapshot = (): SceneSnapshot => ({
+    version: 1,
+    view,
+    walls,
+    selected,
+    network: { devices: network.devices, links: network.links },
+  });
+  const restore = (scene: SceneSnapshot) => {
+    network.setNetwork(scene.network ?? demo());
     useScene.setState({
       view: scene.view,
       walls: scene.walls,
       selected: scene.selected,
     });
+  };
   async function save() {
     setBusy(true);
     try {
@@ -81,7 +92,7 @@ function App() {
   async function importProject(file?: File) {
     if (!file) return;
     try {
-      if (file.size > 65536) throw Error("El archivo supera 64 KB");
+      if (file.size > 262144) throw Error("El archivo supera 256 KB");
       restore(validateScene(JSON.parse(await file.text())));
       setOperation("Proyecto importado; pulsa Guardar para conservarlo");
     } catch {
@@ -177,7 +188,7 @@ function App() {
                 <small>{String(i + 1).padStart(2, "0")}</small>
               </button>
             ))}
-            <div className="paneltitle catalog">CATÁLOGO · FASE 2</div>
+            <div className="paneltitle catalog">CATÁLOGO · LABORATORIO</div>
             {[
               [Server, "Infraestructura"],
               [Monitor, "Dispositivos finales"],
@@ -189,7 +200,7 @@ function App() {
                 <div className="future" key={String(label)}>
                   <I size={17} />
                   {String(label)}
-                  <small>Próximamente</small>
+                  <small>Panel inferior</small>
                 </div>
               );
             })}
@@ -321,14 +332,14 @@ function App() {
               <dt>Habitaciones</dt>
               <dd>9</dd>
               <dt>Dispositivos de red</dt>
-              <dd>0 · Fase 2</dd>
+              <dd>{network.devices.length}</dd>
             </dl>
             <div className="notice">
               <strong>Construyendo la base</strong>
               <p>
-                Se guardan la vista, las paredes y la habitación seleccionada.
-                Dispositivos, cableado y simulación pertenecen a las siguientes
-                fases.
+                Se guardan habitaciones seleccionadas, vista, dispositivos,
+                posiciones y enlaces. Usa el laboratorio inferior para editar la
+                LAN.
               </p>
             </div>
             <button
@@ -347,34 +358,13 @@ function App() {
           </aside>
         )}
       </main>
-      <section className="workbench" aria-label="Herramientas de simulación">
-        <article>
-          <h3>Consola Cisco · CLI</h3>
-          <code>SmartHome&gt; _</code>
-          <p>El parser de comandos se incorporará en la fase 5.</p>
-        </article>
-        <article>
-          <h3>Simulación de tráfico</h3>
-          <div className="empty-chart" />
-          <p>Sin eventos de simulación. No hay tráfico virtual registrado.</p>
-        </article>
-        <article>
-          <h3>Pruebas de conectividad</h3>
-          <strong>Sin topología configurada</strong>
-          <p>Ping y traceroute estarán disponibles con el motor de redes.</p>
-        </article>
-        <article>
-          <h3>Cámaras de seguridad</h3>
-          <div className="camera-empty">◉ Sin cámaras virtuales</div>
-          <p>Las vistas de cámaras se incorporarán en la fase 6.</p>
-        </article>
-      </section>
+      <NetworkEditor />
       <footer>
         <span>
           <span className="dot" /> Motor gráfico activo
         </span>
         <span aria-live="polite" aria-label="Estado del proyecto">
-          {operation || "Simulación de red pendiente · Fase 4"}
+          {operation || "LAN IPv4 virtual · Sin conexión a la red física"}
         </span>
         <span>v0.1.0 / FASE 1</span>
       </footer>

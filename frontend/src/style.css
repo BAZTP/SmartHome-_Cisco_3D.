@@ -617,3 +617,78 @@ main {
     height: 570px;
   }
 }
+
+.network-editor {
+  background: #07141f;
+  border-top: 1px solid #274658;
+  padding: 16px;
+  max-height: 330px;
+  overflow: auto;
+  flex-shrink: 0;
+}
+.network-editor h3 {
+  font-size: 14px;
+  color: #65dcde;
+  margin: 0 0 12px;
+}
+.network-columns {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+.network-editor label {
+  display: block;
+  color: #a0b8ca;
+  font-size: 10px;
+  margin: 6px 0;
+}
+.network-editor input,
+.network-editor select {
+  display: block;
+  width: 100%;
+  background: #112737;
+  border: 1px solid #315165;
+  color: #daedf6;
+  padding: 5px;
+  border-radius: 4px;
+}
+.network-editor button {
+  background: #153b51;
+  border: 1px solid #30627a;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 10px;
+  margin: 3px;
+}
+.network-editor p {
+  font-size: 10px;
+  color: #91a9ba;
+}
+.network-editor pre {
+  white-space: pre-wrap;
+  color: #60e6ac;
+  font-size: 11px;
+  min-height: 48px;
+}
+.link-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.device-tag {
+  border: 1px solid #36a5b8;
+  background: #092631db;
+  color: #b7f7ff;
+  border-radius: 3px;
+  font-size: 9px;
+  white-space: nowrap;
+  padding: 2px 5px;
+}
+@media (max-width: 800px) {
+  .network-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+  .network-editor {
+    max-height: none;
+  }
+}

@@ -18,12 +18,36 @@ test("Pages funciona en la subruta del repositorio sin API", async ({
   ).toBeDisabled();
   await expect(page.locator("canvas")).toBeVisible();
   await expect
-    .poll(() =>
-      page
-        .locator("canvas")
-        .evaluate((c: HTMLCanvasElement) => Boolean(c.getContext("webgl2"))),
+    .poll(
+      () =>
+        page
+          .locator("canvas")
+          .evaluate((c: HTMLCanvasElement) => Boolean(c.getContext("webgl2"))),
+      { timeout: 15000 },
     )
     .toBeTruthy();
+  await page
+    .getByRole("button", { name: "Ejecutar ping", exact: true })
+    .click();
+  await expect(page.getByLabel("Resultado de simulación")).toContainText(
+    "Respuesta ICMP",
+  );
+  await page
+    .getByRole("button", { name: "Desconectar sl", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Ejecutar ping", exact: true })
+    .click();
+  await expect(page.getByLabel("Resultado de simulación")).toContainText(
+    "Sin enlace",
+  );
+  await page.getByLabel("Comando CLI").fill("show interfaces");
+  await page
+    .getByRole("button", { name: "Enviar comando", exact: true })
+    .click();
+  await expect(page.getByLabel("Resultado de simulación")).toContainText(
+    "192.168.1.101",
+  );
   await page.locator(".left").getByRole("button", { name: "Oficina" }).click();
   await expect(page.getByRole("heading", { name: "Oficina" })).toBeVisible();
   await page.getByRole("button", { name: "Superior", exact: true }).click();

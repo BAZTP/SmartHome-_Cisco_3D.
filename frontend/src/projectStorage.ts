@@ -1,6 +1,8 @@
+import { validateNetwork, type Network } from "./network";
 import type { View } from "./store";
 export type SceneSnapshot = {
   version: 1;
+  network?: Network;
   view: View;
   walls: boolean;
   selected: string | null;
@@ -27,6 +29,7 @@ export function validateScene(value: unknown): SceneSnapshot {
     throw Error("Formato de escena incompatible");
   return {
     version: 1,
+    ...(s.network ? { network: validateNetwork(s.network) } : {}),
     view: s.view as View,
     walls: s.walls,
     selected: s.selected as string | null,

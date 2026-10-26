@@ -16,7 +16,7 @@ Abre este repositorio en Antigravity y lee README.md antes de cambiarlo. Conserv
 - `npm run build:local`: API Spring Boot y PostgreSQL detrás de Nginx.
 - `projectStorage.ts`: adaptación de persistencia y validación del JSON compartido.
 - Flyway migra la base de datos: añade migraciones, no edites las ya aplicadas.
-- El estado guardado actual solo incluye vista, paredes y selección; no existen aún dispositivos ni motor de red.
+- El estado guardado incluye vista, paredes, selección y una topología opcional de dispositivos/enlaces; existe un motor LAN básico en TypeScript y Java.
 - No uses ping, traceroute o comandos arbitrarios del anfitrión para la futura simulación.
 - El modo Pages es público, sin secretos ni credenciales externas.
 
@@ -29,3 +29,7 @@ Para futuros motores TypeScript y Java, usar los mismos casos de prueba determin
 ## Verificación antes de publicar
 
 Ejecuta pruebas Java con PostgreSQL, compilaciones `build:pages` y `build:local`, pruebas Playwright de ambas ediciones y una petición funcional a través del frontend del contenedor local. Revisa `git diff` para excluir `.env`, dependencias y artefactos. El workflow Pages publica automáticamente al recibir cambios en `main`; los ajustes de Pages deben usar GitHub Actions.
+
+## Actualización del laboratorio
+
+Ya existen `network.ts`, `NetworkScene.tsx` y `NetworkEditor.tsx`: dispositivos, puertos Ethernet, conectividad LAN, CLI básica y recorrido resaltado. `NetworkDto` añade persistencia validada; `SimulationController` calcula ping en Java. El formato de escena v1 admite el campo opcional `network`. Consulta el apartado final del README para el alcance actual; el alcance está descrito por función. La siguiente entrega debe completar interfaces independientes, arrastre y paridad del parser CLI Java, antes de implementar redes avanzadas. No confundir encendido/apagado del dispositivo con shutdown de una interfaz.
