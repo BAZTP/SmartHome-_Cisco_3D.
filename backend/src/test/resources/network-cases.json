@@ -1,0 +1,4096 @@
+[
+  {
+    "name": "LAN",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "sl",
+          "a": "Switch",
+          "b": "Laptop",
+          "ap": 2,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.1.102",
+    "ok": true
+  },
+  {
+    "name": "Internet virtual con ruta estática y retorno",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "sl",
+          "a": "Switch",
+          "b": "Laptop",
+          "ap": 2,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "203.0.113.1",
+    "ok": true
+  },
+  {
+    "name": "Cable desconectado",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.1.102",
+    "ok": false
+  },
+  {
+    "name": "Interfaz down",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.2",
+                "prefix": 24
+              },
+              {
+                "enabled": false,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "sl",
+          "a": "Switch",
+          "b": "Laptop",
+          "ap": 2,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.1.102",
+    "ok": false
+  },
+  {
+    "name": "Aislamiento VLAN",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 20,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "sl",
+          "a": "Switch",
+          "b": "Laptop",
+          "ap": 2,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.1.102",
+    "ok": false
+  },
+  {
+    "name": "Firewall",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [],
+            "firewall": [
+              {
+                "source": "*",
+                "destination": "192.168.1.102",
+                "action": "deny"
+              }
+            ],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "sl",
+          "a": "Switch",
+          "b": "Laptop",
+          "ap": 2,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.1.102",
+    "ok": false
+  },
+  {
+    "name": "Dos subredes",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.2.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.2.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.2.102",
+                "prefix": 24
+              }
+            ],
+            "gateway": "192.168.2.1",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "a",
+          "a": "PC",
+          "ap": 0,
+          "b": "Router",
+          "bp": 0
+        },
+        {
+          "id": "b",
+          "a": "Router",
+          "ap": 1,
+          "b": "Laptop",
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.2.102",
+    "ok": true
+  },
+  {
+    "name": "Sin retorno",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.2.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.2.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.2.102",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "a",
+          "a": "PC",
+          "ap": 0,
+          "b": "Router",
+          "bp": 0
+        },
+        {
+          "id": "b",
+          "a": "Router",
+          "ap": 1,
+          "b": "Laptop",
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.2.102",
+    "ok": false
+  },
+  {
+    "name": "Origen privado bloqueado",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.2.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.2.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.2.102",
+                "prefix": 24
+              }
+            ],
+            "gateway": "192.168.2.1",
+            "routes": [],
+            "firewall": [
+              {
+                "source": "192.168.1.101",
+                "destination": "*",
+                "action": "deny"
+              }
+            ],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "a",
+          "a": "PC",
+          "ap": 0,
+          "b": "Router",
+          "bp": 0
+        },
+        {
+          "id": "b",
+          "a": "Router",
+          "ap": 1,
+          "b": "Laptop",
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.2.102",
+    "ok": false
+  },
+  {
+    "name": "Traducción de origen",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.2.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": true,
+            "light": false
+          }
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.2.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.2.102",
+                "prefix": 24
+              }
+            ],
+            "gateway": "192.168.2.1",
+            "routes": [],
+            "firewall": [
+              {
+                "source": "192.168.1.101",
+                "destination": "*",
+                "action": "deny"
+              }
+            ],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "a",
+          "a": "PC",
+          "ap": 0,
+          "b": "Router",
+          "bp": 0
+        },
+        {
+          "id": "b",
+          "a": "Router",
+          "ap": 1,
+          "b": "Laptop",
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.2.102",
+    "ok": true
+  },
+  {
+    "name": "Dos puertos access VLAN20 con hosts sin etiquetas",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 20,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 20,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "sl",
+          "a": "Switch",
+          "b": "Laptop",
+          "ap": 2,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.1.102",
+    "ok": true
+  },
+  {
+    "name": "Wi-Fi alcanzable",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 0,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "AP",
+          "kind": "Access Point",
+          "name": "AP",
+          "room": 0,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "sap",
+          "a": "Switch",
+          "ap": 3,
+          "b": "AP",
+          "bp": 0
+        },
+        {
+          "id": "wireless",
+          "a": "AP",
+          "ap": 1,
+          "b": "Laptop",
+          "bp": 0,
+          "kind": "Wi-Fi"
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.1.102",
+    "ok": true
+  },
+  {
+    "name": "Wi-Fi fuera de alcance",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "AP",
+          "kind": "Access Point",
+          "name": "AP",
+          "room": 0,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "sap",
+          "a": "Switch",
+          "ap": 3,
+          "b": "AP",
+          "bp": 0
+        },
+        {
+          "id": "wireless",
+          "a": "AP",
+          "ap": 1,
+          "b": "Laptop",
+          "bp": 0,
+          "kind": "Wi-Fi"
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.1.102",
+    "ok": false
+  },
+  {
+    "name": "Backbone fibra",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0,
+          "kind": "Fibra"
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "sl",
+          "a": "Switch",
+          "b": "Laptop",
+          "ap": 2,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.1.102",
+    "ok": true
+  },
+  {
+    "name": "Trunk transporta VLAN20",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 20,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "trunk",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch2",
+          "kind": "Switch 2960",
+          "name": "Switch2",
+          "room": 8,
+          "ip": "192.168.1.3",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "trunk",
+                "vlan": 1,
+                "ip": "192.168.1.3",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 20,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "trunk",
+          "a": "Switch",
+          "ap": 2,
+          "b": "Switch2",
+          "bp": 0
+        },
+        {
+          "id": "swl",
+          "a": "Switch2",
+          "ap": 1,
+          "b": "Laptop",
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.1.102",
+    "ok": true
+  },
+  {
+    "name": "Trunk mal configurado",
+    "network": {
+      "devices": [
+        {
+          "id": "Router",
+          "kind": "Router ISR 4321",
+          "name": "Router",
+          "room": 8,
+          "ip": "192.168.1.1",
+          "x": -0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "0.0.0.0",
+                "prefix": 0,
+                "gateway": "192.168.254.1"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch",
+          "kind": "Switch 2960",
+          "name": "Switch",
+          "room": 8,
+          "ip": "192.168.1.2",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.2",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 20,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "trunk",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "PC",
+          "kind": "PC",
+          "name": "PC",
+          "room": 0,
+          "ip": "192.168.1.101",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "Laptop",
+          "kind": "Laptop",
+          "name": "Laptop",
+          "room": 5,
+          "ip": "192.168.1.102",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true
+        },
+        {
+          "id": "ASA",
+          "kind": "Firewall ASA",
+          "name": "ASA",
+          "room": 8,
+          "ip": "192.168.254.1",
+          "x": 0,
+          "z": -1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.254.1",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.2",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [
+              {
+                "network": "192.168.1.0",
+                "prefix": 24,
+                "gateway": "192.168.254.2"
+              }
+            ],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Internet",
+          "kind": "Internet",
+          "name": "Internet",
+          "room": 7,
+          "ip": "203.0.113.1",
+          "x": 0,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "203.0.113.1",
+                "prefix": 24
+              }
+            ],
+            "gateway": "203.0.113.2",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        },
+        {
+          "id": "Switch2",
+          "kind": "Switch 2960",
+          "name": "Switch2",
+          "room": 8,
+          "ip": "192.168.1.3",
+          "x": 0.9,
+          "z": 1,
+          "rotation": 0,
+          "prefix": 24,
+          "on": true,
+          "config": {
+            "interfaces": [
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "192.168.1.3",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 20,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              },
+              {
+                "enabled": true,
+                "description": "",
+                "mode": "access",
+                "vlan": 1,
+                "ip": "",
+                "prefix": 24
+              }
+            ],
+            "gateway": "",
+            "routes": [],
+            "firewall": [],
+            "dhcp": null,
+            "nat": false,
+            "light": false
+          }
+        }
+      ],
+      "links": [
+        {
+          "id": "rs",
+          "a": "Router",
+          "b": "Switch",
+          "ap": 0,
+          "bp": 0
+        },
+        {
+          "id": "sp",
+          "a": "Switch",
+          "b": "PC",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ra",
+          "a": "Router",
+          "b": "ASA",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "ai",
+          "a": "ASA",
+          "b": "Internet",
+          "ap": 1,
+          "bp": 0
+        },
+        {
+          "id": "trunk",
+          "a": "Switch",
+          "ap": 2,
+          "b": "Switch2",
+          "bp": 0
+        },
+        {
+          "id": "swl",
+          "a": "Switch2",
+          "ap": 1,
+          "b": "Laptop",
+          "bp": 0
+        }
+      ]
+    },
+    "source": "PC",
+    "target": "192.168.1.102",
+    "ok": false
+  }
+]

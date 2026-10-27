@@ -1,35 +1,47 @@
 # Continuar SmartHome Cisco 3D con Antigravity
 
-Abre este repositorio en Antigravity y lee README.md antes de cambiarlo. Conserva las dos ediciones y no reemplaces la aplicación Java por una demo estática.
+Lee README.md y su apartado de alcance antes de ampliar funciones. Mantén ambas ediciones usando el mismo formato de escena.
 
-## Arranque rápido local
+## Ejecutar
 
-1. Instala Docker y Docker Compose.
-2. Copia `.env.example` a `.env` sin subir credenciales a Git.
-3. Ejecuta `docker compose --profile local up -d --build`.
-4. Abre el puerto 8088 en el navegador local y comprueba `/actuator/health` y `/api/projects`.
-5. Para desarrollo con recarga, usa Java 21/Maven en `backend`, Node en `frontend`, PostgreSQL en Compose y las instrucciones del README.
+```bash
+cp .env.example .env
+docker compose --profile local up -d --build
+```
 
-## Contratos que deben conservarse
+Abre http://localhost:8088. Para desarrollar con recarga: PostgreSQL en Compose, Java 21/Maven en backend y Node 24/Vite en frontend. Pages usa `npm run dev:pages` sin backend.
 
-- `npm run build:pages`: navegador autónomo, sin peticiones a Java; IndexedDB.
-- `npm run build:local`: API Spring Boot y PostgreSQL detrás de Nginx.
-- `projectStorage.ts`: adaptación de persistencia y validación del JSON compartido.
-- Flyway migra la base de datos: añade migraciones, no edites las ya aplicadas.
-- El estado guardado incluye vista, paredes, selección y una topología opcional de dispositivos/enlaces; existe un motor LAN básico en TypeScript y Java.
-- No uses ping, traceroute o comandos arbitrarios del anfitrión para la futura simulación.
-- El modo Pages es público, sin secretos ni credenciales externas.
+## Arquitectura actual
 
-## Siguiente tarea recomendada: Fase 2
+- `network.ts`: dispositivos, enlaces, validación, estado y topología inicial.
+- `advanced.ts` / `NetworkSimulator.java`: motores deterministas de IPv4, VLAN, rutas, firewall y NAT ICMP educativo. Mantén paridad mediante fixtures compartidos.
+- `cli.ts` / `CliController.java`: modos y comandos; la respuesta incluye la nueva red. `save=true` pide al cliente guardar mediante el adaptador de persistencia.
+- `AdvancedPanel.tsx`: configuración de interfaces y JSON; DHCP.
+- `NetworkScene.tsx`, `DeviceModel.tsx`, `House.tsx`: dispositivos, arrastre, cables, paquetes y cámara virtual.
+- `Telemetry.tsx`: topología SVG sincronizada, pasos, gráficas, CSV e IoT.
+- `EventService` / `EventSocket`: eventos persistidos y WebSocket. Nginx y Vite redirigen `/ws`.
+- `projectStorage.ts`: IndexedDB para Pages y REST para local. Escena v1 admite configuraciones opcionales y escenas antiguas.
+- Flyway V1–V3: proyecto, escena JSON y eventos. Añade migraciones; no cambies las aplicadas.
 
-Implementar catálogo, Room/NetworkDevice, posiciones, selección y edición de dispositivos. Extender el formato del proyecto de forma versionada; actualizar validación TypeScript y DTO Java, migraciones y pruebas. Guardar los mismos datos en IndexedDB (Pages) y PostgreSQL (local). Mantener escenas iniciales y exportación/importación compatibles o proporcionar migración explícita.
+## Pendientes prioritarios
 
-Para futuros motores TypeScript y Java, usar los mismos casos de prueba deterministas. No afirmar paridad ni terminar funciones sin ejecutar sus pruebas. CLI, VLAN, NAT, cámaras y monitoreo todavía no están implementados.
+El README detalla lo que no está implementado. Para completar el prompt maestro: tablas ARP/MAC, PAT por sesiones, traceroute con TTL, editor visual de reglas y rutas, múltiples proyectos y dominio relacional, importación GLTF, editor de topología más completo y optimización del paquete gráfico. No presentes el NAT ICMP o el recorrido lógico como una implementación completa de PAT/traceroute.
 
-## Verificación antes de publicar
+## Verificar antes de publicar
 
-Ejecuta pruebas Java con PostgreSQL, compilaciones `build:pages` y `build:local`, pruebas Playwright de ambas ediciones y una petición funcional a través del frontend del contenedor local. Revisa `git diff` para excluir `.env`, dependencias y artefactos. El workflow Pages publica automáticamente al recibir cambios en `main`; los ajustes de Pages deben usar GitHub Actions.
+```bash
+cd backend
+mvn verify
+cd ../frontend
+node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts
+npm run build:local
+# Con API y Vite activos:
+npx playwright test --workers=1
+npm run build:pages
+# Servir dist bajo /SmartHome-_Cisco_3D./ en el puerto 4173:
+npx playwright test --config playwright.pages.config.ts
+```
 
-## Actualización del laboratorio
+La configuración usa Chromium de `/usr/bin/chromium`; adapta la ruta en otros sistemas. Para verificar Nginx, ejecuta Playwright con `PLAYWRIGHT_BASE_URL=http://127.0.0.1:8088` tras construir Compose. Las pruebas escriben la escena de demostración: usa una base de desarrollo.
 
-Ya existen `network.ts`, `NetworkScene.tsx` y `NetworkEditor.tsx`: dispositivos, puertos Ethernet, conectividad LAN, CLI básica y recorrido resaltado. `NetworkDto` añade persistencia validada; `SimulationController` calcula ping en Java. El formato de escena v1 admite el campo opcional `network`. Consulta el apartado final del README para el alcance actual; el alcance está descrito por función. La siguiente entrega debe completar interfaces independientes, arrastre y paridad del parser CLI Java, antes de implementar redes avanzadas. No confundir encendido/apagado del dispositivo con shutdown de una interfaz.
+No introduzcas secretos, tráfico físico ni comandos del anfitrión. Conserva los mensajes visibles de error y la exportación/importación JSON. El workflow de Pages publica `main`; Settings → Pages debe utilizar GitHub Actions.

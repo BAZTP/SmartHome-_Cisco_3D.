@@ -15,7 +15,7 @@ Casa 3D esquemática de nueve zonas y mobiliario generado por código; órbita, 
 
 **Guardar proyecto** conserva la vista predefinida, visibilidad de paredes, habitación seleccionada, dispositivos y enlaces. **Cargar proyecto** recupera explícitamente esa escena, incluso después de recargar. No se guarda automáticamente; tampoco se guarda aún la posición libre de la cámara al orbitar. Exportar/importar JSON permite trasladar ese estado entre ambas ediciones. Importar no guarda hasta pulsar Guardar. Solo hay una escena por edición en esta fase.
 
-El laboratorio incluye catálogo, edición de dispositivos, conexiones Ethernet y ping LAN. El apartado final detalla las funciones soportadas y las fases que siguen pendientes.
+El laboratorio incluye edición y arrastre 3D, interfaces independientes, tres medios de conexión, simulación IPv4, CLI, topología sincronizada, reproducción de paquetes, monitoreo, cámaras e iluminación virtual. El apartado de alcance describe las simplificaciones educativas.
 
 ## Versión GitHub Pages
 
@@ -55,7 +55,7 @@ curl http://localhost:8088/actuator/health
 curl http://localhost:8088/api/projects
 ```
 
-Nginx sirve el frontend local y redirige API y OpenAPI al contenedor Java. PostgreSQL conserva los datos en un volumen. Flyway crea el proyecto inicial y migra el campo de escena. La interfaz muestra “API y PostgreSQL conectados” cuando puede consultar el proyecto.
+Nginx sirve el frontend local y redirige API y OpenAPI al contenedor Java. PostgreSQL conserva los datos en un volumen. Flyway crea el proyecto inicial, el campo de escena y el historial de eventos. La interfaz muestra “API y PostgreSQL conectados” cuando puede consultar el proyecto.
 
 Los valores predeterminados son exclusivamente de desarrollo local. Personaliza `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT` y `WEB_PORT` en `.env`. No lo subas a Git. Compose conecta automáticamente el backend a PostgreSQL. Cambiar la contraseña en `.env` no modifica un rol de un volumen PostgreSQL ya inicializado.
 
@@ -88,7 +88,7 @@ npm ci
 npm run dev
 ```
 
-Abre el puerto 5173. Vite redirige `/api` y `/actuator` al backend 8080. `npm run build:local` genera la versión para el despliegue con Nginx. No definas `VITE_STATIC_DEMO=true` (compatibilidad con la edición anterior) al compilar la versión local.
+Abre el puerto 5173. Vite redirige `/api`, `/ws` y `/actuator` al backend 8080. `npm run build:local` genera la versión para el despliegue con Nginx. No definas `VITE_STATIC_DEMO=true` (compatibilidad con la edición anterior) al compilar la versión local.
 
 Spring Boot no carga `.env` automáticamente fuera de Compose. Si personalizas la base de datos, exporta `DB_URL`, `DB_USER` y `DB_PASSWORD` en el proceso Java. La URL predeterminada es `jdbc:postgresql://localhost:5432/smarthome`.
 
@@ -98,6 +98,11 @@ Spring Boot no carga `.env` automáticamente fuera de Compose. Si personalizas l
 - `GET /api/projects/{id}/scene`: escena guardada; respuesta vacía si nunca se guardó.
 - `PUT /api/projects/{id}/scene`: reemplaza la escena validada, responde 204.
 - `GET /actuator/health`: disponibilidad del backend y PostgreSQL.
+- `POST /api/simulation/ping` y `/api/simulation/traceroute`: reciben `{network, source, target}` y devuelven `{ok, message, path}`.
+- `POST /api/simulation/dhcp`: recibe `{network, source}` y devuelve el dispositivo con su dirección asignada.
+- `POST /api/cli`: recibe `{network, source, context:{mode,port}, command}` y devuelve `{network,context,output,save,trace}`. Cuando `save=true`, el cliente guarda la escena mediante PUT.
+- `GET /api/simulation/events` y `/api/simulation/metrics`: últimos 100 eventos y acumulados persistidos.
+- `WS /ws/events`: eventos de ping/traceroute del servidor en tiempo real.
 - `/v3/api-docs` y `/swagger-ui/index.html`: documentación OpenAPI.
 
 Formato compartido:
@@ -113,6 +118,7 @@ Con PostgreSQL iniciado, `cd backend && mvn verify` ejecuta pruebas HTTP de migr
 En `frontend`:
 
 ```bash
+node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts
 npm run build:local
 # Con Vite local y backend iniciados:
 npx playwright test
@@ -138,20 +144,72 @@ La prueba Pages valida ausencia de peticiones a la API, WebGL, controles, persis
 
 En el entorno de nube actual, `scripts/mvn` activa el JDK y Maven conservados en `/workspace/tools`. `scripts/setup-cloud.sh` prepara dependencias, arranca PostgreSQL y valida backend/frontend con el proxy del entorno. No es necesario para un equipo local con Docker.
 
-## Pendiente
+## Laboratorio interactivo
 
-Completar arrastre de dispositivos, interfaces independientes y simulación avanzada. Mantener contratos comunes y pruebas en las dos ediciones. El paquete gráfico todavía genera una advertencia por tamaño; optimizar carga diferida antes de ampliar escenas.
+La escena inicial incluye **Internet virtual → Firewall ASA → Router ISR → Switch 2960 → PC y Laptop**. Router LAN `192.168.1.1/24`, switch `192.168.1.2/24`, PC `.101`, laptop `.102`; gateway de ambos equipos `.1`. La WAN del router es `192.168.254.2/24`, ASA interna `.1` y externa `203.0.113.2/24`, Internet virtual `203.0.113.1`. Existen rutas de ida y retorno; ninguna dirección representa acceso a Internet real.
 
-## Actualización del laboratorio de red
+1. Selecciona PC y pulsa **Ejecutar ping** hacia `192.168.1.102`: responde y dibuja PC → Switch → Laptop.
+2. Pulsa **Desconectar sl** y repite: falla. Reconecta Switch puerto 2 → Laptop puerto 0 para recuperarlo.
+3. Apaga un equipo, desactiva una interfaz o cambia una VLAN y repite la prueba para observar el resultado.
+4. Selecciona un dispositivo desde la casa, la lista o la topología. Arrastra su etiqueta en la casa; también puedes editar habitación, X/Z y rotación. Arrastra un dispositivo del catálogo lateral al suelo para agregarlo.
+5. Selecciona origen, destino, puertos y medio. Los puertos ocupados y medios incompatibles se rechazan. Wi-Fi requiere un access point y una distancia máxima de 8 unidades de la escena; fibra requiere equipos de infraestructura o servidor.
+6. Usa Reproducir/Pausar, Siguiente salto y Reiniciar para inspeccionar el último recorrido. El marcador representa un paquete virtual; los cables recorren puntos de control a nivel del suelo.
+7. Guarda, recarga y carga el proyecto. Configuraciones, conexiones, posiciones y estado de bombillas forman parte del mismo JSON portable.
 
-El renderizado ahora usa antialiasing y densidad de píxeles hasta 2×. El panel inferior permite agregar dispositivos, seleccionarlos también en 3D, cambiar habitación, moverlos mediante controles X/Z, rotarlos, renombrarlos, configurar IPv4/prefijo, apagarlos y eliminarlos. Las conexiones Ethernet seleccionan puertos y rechazan puertos ocupados, bucles directos y dispositivos inexistentes. Los cables muestran estado y resaltan el recorrido del último ping.
+Los modelos son geometrías originales: monitores, portátiles, equipos de rack, cámaras, AP, sensores y bombillas. El render usa antialiasing, densidad hasta 2× y sombras de 2048 px. Son modelos educativos, no activos propietarios ni una reconstrucción fotorrealista de la imagen de referencia.
 
-La escena guardada incluye ahora el campo opcional `network` con dispositivos y enlaces. Los archivos anteriores siguen admitidos y recuperan la LAN de demostración. La exportación/importación admite hasta 256 KB. Pages usa IndexedDB; la edición local usa PostgreSQL. La demostración inicial es Router → Switch → PC y Laptop.
+## Configuración de red y CLI
 
-El ping educativo de una LAN se calcula en TypeScript en Pages y mediante `POST /api/simulation/ping` en Java en la versión local. Comprueba energía, IP duplicada, subred bidireccional y un recorrido por switches/access points. No proporciona latencias ficticias ni ejecuta comandos del anfitrión. Un router o firewall todavía no reenvía paquetes entre subredes.
+Abre **Interfaces, VLAN, gateway, rutas, DHCP y firewall**. El formulario modifica cada interfaz; el editor JSON permite configurar gateway, rutas estáticas, reglas y DHCP. Los errores de validación aparecen junto al editor. `eth0` coincide con la dirección principal del equipo.
 
-CLI disponible: `?`, `enable`, `disable`, `configure terminal`, `exit`, `end`, `hostname`, `show interfaces`, `show running-config`, `shutdown`, `no shutdown` y `ping IP`. La CLI se interpreta en el navegador en ambas ediciones; el ping usa el motor correspondiente. `shutdown` afecta al dispositivo completo, no a una interfaz individual. Guardar proyecto persiste los cambios.
+Ejemplo de rutas y servicios dentro de la configuración de un router (conserva también los demás campos):
 
-**Todavía pendientes:** arrastre libre de dispositivos, interfaces con configuración independiente, topología React Flow, traceroute, animación paso a paso, parser CLI Java completo, VLAN, DHCP, rutas estáticas, NAT/PAT, reglas firewall, WebSocket, métricas, cámaras e IoT funcionales. Los modelos de cámara y bombilla del catálogo son dispositivos de red genéricos, sin vídeo ni control de iluminación. Estas funciones no deben declararse completas.
+```json
+{
+  "gateway": "192.168.1.1",
+  "routes": [{"network":"0.0.0.0","prefix":0,"gateway":"192.168.254.1"}],
+  "firewall": [{"action":"deny","source":"192.168.1.101","destination":"203.0.113.1"}],
+  "dhcp": {"start":"192.168.1.150","end":"192.168.1.180","gateway":"192.168.1.1","prefix":24},
+  "nat": false
+}
+```
 
-Prueba del motor del navegador: `node --experimental-strip-types --test tests/network.test.ts` desde `frontend` con Node 24. `mvn verify` incluye la persistencia de la topología y el ping Java conectado/desconectado.
+**Solicitar DHCP** asigna una dirección libre de un servidor alcanzable; no inventa una concesión si el equipo está desconectado. Firewall evalúa la primera regla coincidente y permite por defecto. `*` representa cualquier dirección. Las rutas se eligen por el prefijo más específico; se exige también conectividad de retorno. Los puertos access reciben tramas sin etiqueta y asignan su VLAN; los trunks transportan las VLAN entre switches. No hay negociación automática del trunk.
+
+CLI interpretada en **Java en la edición local** y **TypeScript en Pages**. No ejecuta comandos del sistema. Usa `?`, Tab e historial con ↑/↓. Ejemplo para interrumpir el enlace de PC desde el switch:
+
+```text
+enable
+configure terminal
+interface eth1
+description Enlace PC
+shutdown
+end
+show ip interface brief
+write memory
+```
+
+`shutdown` afecta solo a la interfaz elegida. `no shutdown` la restaura. También se soportan `disable`, `exit`, `hostname`, `ip address IP MASCARA`, `show running-config`, `show interfaces`, `show ip route`, `show vlan brief`, `switchport mode access`, `switchport mode trunk`, `switchport access vlan N`, `ip route RED MASCARA GATEWAY`, `ping IP`, `traceroute IP` e `ip dhcp` en modo configuración. `vlan N` valida la disponibilidad del identificador; las VLAN efectivas se crean al asignarlas a puertos. `write memory` guarda el proyecto completo desde la interfaz de usuario.
+
+## Monitoreo, cámaras e IoT
+
+Cada ping exitoso representa 32 bytes de solicitud y 32 de respuesta. Las gráficas muestran bytes **virtuales por evento**, no Mbps ni mediciones físicas. El backend conserva eventos y publica por WebSocket; Pages los calcula en memoria. Exportar eventos CSV descarga la actividad de esta sesión. El historial visible está limitado a 100 eventos y se reinicia al cargar otro proyecto; el historial del servidor se consulta por API.
+
+Agrega una Cámara IP y conéctala a un puerto libre del switch. **Vista de cámara virtual** sitúa la cámara del render en su ubicación; **Simular movimiento** genera un evento educativo si tiene conectividad con el router. Apagarla cierra la vista. No hay vídeo real. Una Bombilla IoT conectada permite alternar la iluminación; si se desconecta, la operación se rechaza.
+
+## Alcance y pendientes explícitos
+
+Esta entrega amplía las fases 2–6 y añade pruebas y documentación de la fase 7. **No equivale a completar todos los requisitos del prompt maestro.**
+
+- El motor modela ICMP, reenvío, VLAN, DHCP básico y reglas por IP. `traceroute` muestra el recorrido lógico incluyendo switches, sin sondas TTL ni tiempos de red.
+- `nat=true` demuestra traducción de dirección de origen en ICMP y su efecto en reglas posteriores. No implementa tablas PAT con puertos TCP/UDP, expiración de sesiones ni un firewall con estado.
+- DHCP asigna direcciones deterministas sin negociación de broadcast ni expiración de concesiones. No hay DNS/HTTP virtual ni tablas ARP/MAC aprendidas y consultables.
+- La topología es un SVG interactivo sincronizado, sin editor React Flow. Los modelos GLB/GLTF todavía no se importan.
+- Se guarda un proyecto completo como escena JSON en PostgreSQL; faltan creación de múltiples proyectos desde la interfaz, CRUD individual de habitaciones/dispositivos y tablas relacionales independientes para cada entidad del dominio.
+- Los paneles laterales se redimensionan y ocultan; los apartados inferiores se contraen. La posición libre de la cámara no se persiste. El paquete Three.js/Recharts sigue siendo grande y Vite avisa durante la compilación.
+
+## Verificación de esta entrega
+
+Los motores Java y TypeScript consumen los mismos **16 escenarios deterministas** en `backend/src/test/resources/network-cases.json`: LAN, cable desconectado, interfaz apagada, VLAN aislada/compartida, trunk correcto/incorrecto, rutas y retorno, firewall, traducción de origen, Wi-Fi dentro/fuera de alcance y fibra. `frontend/tests/create-fixtures.ts` regenera esos casos; no son tráfico físico.
+
+Las pruebas de navegador cubren CLI Java, persistencia de interfaces, WebSocket con eventos de 64 bytes, arrastre de etiquetas, cámaras, bombillas, JSON portable y Pages sin API. Revisa los resultados del comando en tu entorno; el repositorio no sustituye una ejecución de pruebas por una afirmación de éxito.

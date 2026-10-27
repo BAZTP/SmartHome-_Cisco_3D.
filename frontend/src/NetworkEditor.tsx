@@ -1,3 +1,8 @@
+import AdvancedPanel from "./AdvancedPanel";
+import Telemetry from "./Telemetry";
+import { execute, type Context, commands } from "./cli";
+import { saveScene } from "./projectStorage";
+import { useScene } from "./store";
 import { browserEdition } from "./projectStorage";
 import { useState, useEffect } from "react";
 import { kinds, ports, ipv4, ping, useNetwork } from "./network";
@@ -19,30 +24,40 @@ export default function NetworkEditor() {
     [dest, D] = useState(""),
     [ap, A] = useState(0),
     [bp, B] = useState(0),
+    [medium, MED] = useState<"Ethernet" | "Wi-Fi" | "Fibra">("Ethernet"),
     [target, T] = useState("192.168.1.102"),
     [output, O] = useState(""),
     [cmd, C] = useState(""),
     [mode, M] = useState("EXEC");
-  useEffect(() => M("EXEC"), [n.selected]);
-  async function simulate(ip: string) {
+  const [context, CTX] = useState<Context>({ mode: "EXEC", port: 0 });
+  const [history, H] = useState<string[]>([]),
+    [cursor, HC] = useState(0);
+  useEffect(() => {
+    M("EXEC");
+    CTX({ mode: "EXEC", port: 0 });
+  }, [n.selected]);
+  async function simulate(ip: string, trace = false) {
     if (!d) throw Error("Selecciona un dispositivo");
     if (browserEdition) return ping(n, d.id, ip);
-    const r = await fetch("/api/simulation/ping", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        network: { devices: n.devices, links: n.links },
-        source: d.id,
-        target: ip,
-      }),
-    });
+    const r = await fetch(
+      trace ? "/api/simulation/traceroute" : "/api/simulation/ping",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          network: { devices: n.devices, links: n.links },
+          source: d.id,
+          target: ip,
+        }),
+      },
+    );
     if (!r.ok) throw Error("Error del motor Java");
     return (await r.json()) as ReturnType<typeof ping>;
   }
-  async function run() {
+  async function run(trace = false) {
     try {
-      const result = await simulate(target);
-      useNetwork.setState({ trace: result.path });
+      const result = await simulate(target, trace);
+      useNetwork.getState().record(result);
       O(
         result.message +
           "\n" +
@@ -57,45 +72,53 @@ export default function NetworkEditor() {
   async function cli() {
     if (!d) return;
     const text = cmd.trim();
-    C("");
-    let result = "Comando no soportado. Ayuda: ?";
-    if (text === "?")
-      result =
-        "enable · disable · configure terminal · end · exit · hostname NOMBRE · shutdown · no shutdown · show interfaces · show running-config · ping IP";
-    else if (text === "enable") {
-      M("PRIVILEGIADO");
-      result = "Modo privilegiado";
-    } else if (text === "disable" || text === "end" || text === "exit") {
-      M("EXEC");
-      result = "Modo EXEC";
-    } else if (text === "configure terminal" && mode === "PRIVILEGIADO") {
-      M("CONFIG");
-      result = "Configuración del dispositivo";
-    } else if (text === "show interfaces" || text === "show running-config")
-      result = `${d.name}\nIP ${d.ip}/${d.prefix}\nEstado ${d.on ? "up" : "down"}\nPuertos Ethernet: ${ports(d)}`;
-    else if (
-      text.startsWith("hostname ") &&
-      mode === "CONFIG" &&
-      text.slice(9).trim().length <= 60
-    ) {
-      n.update(d.id, { name: text.slice(9).trim() || d.name });
-      result = "Hostname actualizado";
-    } else if (
-      mode === "CONFIG" &&
-      ["shutdown", "no shutdown"].includes(text)
-    ) {
-      n.update(d.id, { on: text === "no shutdown" });
-      result = "Estado actualizado (dispositivo completo)";
-    } else if (text.startsWith("ping ")) {
-      const r = await simulate(text.slice(5));
-      useNetwork.setState({ trace: r.path });
-      result = r.message;
+    const network = { devices: n.devices, links: n.links };
+    let r: ReturnType<typeof execute>;
+    if (browserEdition) r = execute(network, d.id, context, text);
+    else {
+      const response = await fetch("/api/cli", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ network, source: d.id, context, command: text }),
+      });
+      if (!response.ok) throw Error("Sintaxis o modo incorrectos. Usa ?");
+      r = await response.json();
     }
-    O(`${d.name} (${mode})> ${text}\n${result}`);
+    useNetwork.setState({ ...r.network });
+    if (r.trace) useNetwork.getState().record(r.trace);
+    CTX(r.context);
+    M(r.context.mode);
+    H((h) => [...h.slice(-99), text]);
+    HC(history.length + 1);
+    C("");
+    O((previous) =>
+      (
+        previous +
+        "\n" +
+        d.name +
+        " (" +
+        context.mode +
+        ")> " +
+        text +
+        "\n" +
+        r.output
+      ).slice(-12000),
+    );
+    if (r.save) {
+      const scene = useScene.getState();
+      await saveScene({
+        version: 1,
+        view: scene.view,
+        walls: scene.walls,
+        selected: scene.selected,
+        network: r.network,
+      });
+      O((p) => p + "\nConfiguración guardada");
+    }
   }
   return (
-    <section className="network-editor">
-      <h3>Laboratorio de red · LAN educativa</h3>
+    <section className="network-editor" id="laboratory">
+      <h3>Laboratorio de red · Simulación educativa</h3>
       <div className="network-columns">
         <div>
           <label>
@@ -107,6 +130,12 @@ export default function NetworkEditor() {
             </select>
           </label>
           <button
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData("application/x-smarthome-device", kind);
+              e.dataTransfer.effectAllowed = "copy";
+            }}
+            title="Haz clic para agregar o arrastra a una habitación"
             onClick={() => {
               try {
                 n.add(kind, 0);
@@ -138,7 +167,7 @@ export default function NetworkEditor() {
             </select>
           </label>
           <p>
-            {n.devices.length} dispositivos · {n.links.length} enlaces Ethernet
+            {n.devices.length} dispositivos · {n.links.length} enlaces virtuales
           </p>
         </div>
         {d && (
@@ -271,17 +300,28 @@ export default function NetworkEditor() {
                   onChange={(e) => B(Number(e.target.value))}
                 />
               </label>
+              <label>
+                Medio
+                <select
+                  value={medium}
+                  onChange={(e) => MED(e.target.value as typeof medium)}
+                >
+                  <option>Ethernet</option>
+                  <option>Wi-Fi</option>
+                  <option>Fibra</option>
+                </select>
+              </label>
               <button
                 onClick={() => {
                   try {
-                    n.connect(d.id, dest, ap, bp);
+                    n.connect(d.id, dest, ap, bp, medium);
                     O("Enlace creado");
                   } catch (e) {
                     O(String(e));
                   }
                 }}
               >
-                Conectar Ethernet
+                Conectar enlace
               </button>
             </div>
             <div>
@@ -293,7 +333,8 @@ export default function NetworkEditor() {
                   onChange={(e) => T(e.target.value)}
                 />
               </label>
-              <button onClick={run}>Ejecutar ping</button>
+              <button onClick={() => void run()}>Ejecutar ping</button>
+              <button onClick={() => void run(true)}>Traceroute virtual</button>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -306,6 +347,24 @@ export default function NetworkEditor() {
                     aria-label="Comando CLI"
                     value={cmd}
                     onChange={(e) => C(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        const i = Math.max(0, cursor - 1);
+                        HC(i);
+                        C(history[i] ?? "");
+                      }
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        const i = Math.min(history.length, cursor + 1);
+                        HC(i);
+                        C(history[i] ?? "");
+                      }
+                      if (e.key === "Tab") {
+                        e.preventDefault();
+                        C(commands.find((v) => v.startsWith(cmd)) ?? cmd);
+                      }
+                    }}
                     placeholder="? para ayuda"
                   />
                 </label>
@@ -331,9 +390,11 @@ export default function NetworkEditor() {
           </button>
         ))}
       </div>
+      <AdvancedPanel />
+      <Telemetry />
       <p>
-        Alcance actual: una LAN IPv4, Ethernet y switches. VLAN, DHCP,
-        enrutamiento, NAT y firewall aún no se simulan.
+        Alcance actual: IPv4 educativo con interfaces, VLAN, DHCP, rutas y
+        firewall.
       </p>
     </section>
   );

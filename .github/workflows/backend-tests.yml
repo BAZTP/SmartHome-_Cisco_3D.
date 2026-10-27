@@ -1,0 +1,32 @@
+name: Validate Java network simulator
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  java:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: smarthome
+          POSTGRES_USER: smarthome
+          POSTGRES_PASSWORD: local-development-only
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U smarthome -d smarthome"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: mvn --batch-mode verify
+        working-directory: backend

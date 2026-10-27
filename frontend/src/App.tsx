@@ -1,5 +1,6 @@
+import Topology from "./Topology";
 import NetworkEditor from "./NetworkEditor";
-import { useNetwork, demo } from "./network";
+import { useNetwork, demo, kinds } from "./network";
 import { useEffect, useState } from "react";
 import {
   Network,
@@ -10,9 +11,6 @@ import {
   Rotate3D,
   ChevronRight,
   Server,
-  Monitor,
-  Shield,
-  Radio,
   PanelLeftClose,
   PanelRightClose,
 } from "lucide-react";
@@ -132,7 +130,26 @@ function App() {
           </div>
         </div>
         <nav>
-          <span className="active">Diseño</span>
+          <button
+            className="active"
+            onClick={() => document.getElementById("design")?.scrollIntoView()}
+          >
+            Diseño
+          </button>
+          <button
+            onClick={() =>
+              document.getElementById("laboratory")?.scrollIntoView()
+            }
+          >
+            Simulación / CLI
+          </button>
+          <button
+            onClick={() =>
+              document.getElementById("monitoring")?.scrollIntoView()
+            }
+          >
+            Monitoreo
+          </button>
           <span>
             {staticDemo
               ? "Versión navegador"
@@ -168,9 +185,38 @@ function App() {
           </label>
         </div>
       </div>
-      <main>
+      <main id="design">
         {left && (
           <aside className="left">
+            <div className="paneltitle catalog">CATÁLOGO · LABORATORIO</div>
+            {kinds.map((kind) => (
+              <button
+                key={kind}
+                className="catalog-device"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData(
+                    "application/x-smarthome-device",
+                    kind,
+                  );
+                  e.dataTransfer.effectAllowed = "copy";
+                }}
+                onClick={() => {
+                  try {
+                    network.add(
+                      kind,
+                      Math.max(0, rooms.indexOf(selected ?? "Sala")),
+                    );
+                  } catch (e) {
+                    setOperation(String(e));
+                  }
+                }}
+                title="Agregar o arrastrar hacia la casa"
+              >
+                <Server size={16} />
+                {kind}
+              </button>
+            ))}
             <div className="paneltitle">
               EXPLORADOR DE CASA <Layers size={15} />
             </div>
@@ -188,22 +234,6 @@ function App() {
                 <small>{String(i + 1).padStart(2, "0")}</small>
               </button>
             ))}
-            <div className="paneltitle catalog">CATÁLOGO · LABORATORIO</div>
-            {[
-              [Server, "Infraestructura"],
-              [Monitor, "Dispositivos finales"],
-              [Shield, "Seguridad"],
-              [Radio, "IoT"],
-            ].map(([Icon, label]) => {
-              const I = Icon as typeof Server;
-              return (
-                <div className="future" key={String(label)}>
-                  <I size={17} />
-                  {String(label)}
-                  <small>Panel inferior</small>
-                </div>
-              );
-            })}
           </aside>
         )}
         <section className="viewport">
@@ -253,6 +283,8 @@ function App() {
         </section>
         {right && (
           <aside className="right">
+            <div className="paneltitle">TOPOLOGÍA DE RED</div>
+            <Topology compact />
             <div className="house-map">
               <div className="paneltitle">PLANO DE LA CASA</div>
               <p className="muted">Selecciona una zona para inspeccionarla</p>
@@ -335,12 +367,23 @@ function App() {
               <dd>{network.devices.length}</dd>
             </dl>
             <div className="notice">
-              <strong>Construyendo la base</strong>
+              <strong>Estado de dispositivos</strong>
               <p>
-                Se guardan habitaciones seleccionadas, vista, dispositivos,
-                posiciones y enlaces. Usa el laboratorio inferior para editar la
-                LAN.
+                Selecciona un equipo para editar sus interfaces y conexiones.
               </p>
+            </div>
+            <div className="device-status-list">
+              {network.devices.map((d) => (
+                <button
+                  key={d.id}
+                  className={network.selected === d.id ? "chosen" : ""}
+                  onClick={() => network.select(d.id)}
+                >
+                  <span style={{ color: d.on ? "#3bdca6" : "#fa647c" }}>●</span>{" "}
+                  {d.name.length > 20 ? d.kind : d.name}
+                  <small>{d.ip}</small>
+                </button>
+              ))}
             </div>
             <button
               className="retry"
@@ -366,7 +409,7 @@ function App() {
         <span aria-live="polite" aria-label="Estado del proyecto">
           {operation || "LAN IPv4 virtual · Sin conexión a la red física"}
         </span>
-        <span>v0.1.0 / FASE 1</span>
+        <span>v0.2.0 / LABORATORIO</span>
       </footer>
     </div>
   );
