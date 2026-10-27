@@ -13,7 +13,7 @@ Ambas comparten interfaz y formato de escena. No se duplican fuentes ni se manti
 
 Casa 3D esquemática de nueve zonas y mobiliario generado por código; órbita, zoom, desplazamiento, vistas isométrica/superior/interior, selección de habitaciones, paredes conmutables y paneles laterales redimensionables/ocultables. Interfaz adaptable con mensajes de errores visibles.
 
-**Guardar proyecto** conserva la vista predefinida, visibilidad de paredes, habitación seleccionada, dispositivos y enlaces. **Cargar proyecto** recupera explícitamente esa escena, incluso después de recargar. No se guarda automáticamente; tampoco se guarda aún la posición libre de la cámara al orbitar. Exportar/importar JSON permite trasladar ese estado entre ambas ediciones. Importar no guarda hasta pulsar Guardar. Solo hay una escena por edición en esta fase.
+**Guardar proyecto** conserva la vista predefinida, visibilidad de paredes, habitación seleccionada, dispositivos y enlaces. **Cargar proyecto** recupera explícitamente esa escena, incluso después de recargar. No se guarda automáticamente; tampoco se guarda aún la posición libre de la cámara al orbitar. Exportar/importar JSON permite trasladar ese estado entre ambas ediciones. Importar no guarda hasta pulsar Guardar. Cada proyecto tiene su propia escena. **Mis proyectos** permite crear, abrir, renombrar y eliminar casas; la demostración no se elimina. Al cambiar o crear un proyecto se guardan los cambios del actual. Al recargar la página se muestra inicialmente la demostración; abrir otro proyecto recupera su escena guardada sin sobrescribir las demás.
 
 El laboratorio incluye edición y arrastre 3D, interfaces independientes, tres medios de conexión, simulación IPv4, CLI, topología sincronizada, reproducción de paquetes, monitoreo, cámaras e iluminación virtual. El apartado de alcance describe las simplificaciones educativas.
 
@@ -94,15 +94,18 @@ Spring Boot no carga `.env` automáticamente fuera de Compose. Si personalizas l
 
 ## API
 
-- `GET /api/projects`: proyecto de demostración.
+- `GET /api/projects`: lista de proyectos.
+- `POST /api/projects`: crea un proyecto con `{ "name": "Mi casa" }`, responde 201 y `{id,name}`.
+- `PUT /api/projects/{id}`: renombra con `{name}`.
+- `DELETE /api/projects/{id}`: elimina su escena y sus eventos; rechaza la demostración con 409.
 - `GET /api/projects/{id}/scene`: escena guardada; respuesta vacía si nunca se guardó.
 - `PUT /api/projects/{id}/scene`: reemplaza la escena validada, responde 204.
 - `GET /actuator/health`: disponibilidad del backend y PostgreSQL.
-- `POST /api/simulation/ping` y `/api/simulation/traceroute`: reciben `{network, source, target}` y devuelven `{ok, message, path}`.
+- `POST /api/simulation/ping` y `/api/simulation/traceroute`: reciben `{network, source, target, projectId}` y devuelven `{ok, message, path}`.
 - `POST /api/simulation/dhcp`: recibe `{network, source}` y devuelve el dispositivo con su dirección asignada.
-- `POST /api/cli`: recibe `{network, source, context:{mode,port}, command}` y devuelve `{network,context,output,save,trace}`. Cuando `save=true`, el cliente guarda la escena mediante PUT.
-- `GET /api/simulation/events` y `/api/simulation/metrics`: últimos 100 eventos y acumulados persistidos.
-- `WS /ws/events`: eventos de ping/traceroute del servidor en tiempo real.
+- `POST /api/cli`: recibe `{network, source, context:{mode,port}, command, projectId}` y devuelve `{network,context,output,save,trace}`. Cuando `save=true`, el cliente guarda la escena mediante PUT.
+- `GET /api/simulation/events` y `/api/simulation/metrics`: últimos 100 eventos y acumulados persistidos. Ambos aceptan `?projectId=UUID`; si se omite, usan la demostración.
+- `WS /ws/events`: eventos de ping/traceroute del servidor en tiempo real, identificados por `projectId`. El cliente filtra el proyecto activo.
 - `/v3/api-docs` y `/swagger-ui/index.html`: documentación OpenAPI.
 
 Formato compartido:
@@ -193,7 +196,7 @@ write memory
 
 ## Monitoreo, cámaras e IoT
 
-Cada ping exitoso representa 32 bytes de solicitud y 32 de respuesta. Las gráficas muestran bytes **virtuales por evento**, no Mbps ni mediciones físicas. El backend conserva eventos y publica por WebSocket; Pages los calcula en memoria. Exportar eventos CSV descarga la actividad de esta sesión. El historial visible está limitado a 100 eventos y se reinicia al cargar otro proyecto; el historial del servidor se consulta por API.
+Cada ping exitoso representa 32 bytes de solicitud y 32 de respuesta. Las gráficas muestran bytes **virtuales por evento**, no Mbps ni mediciones físicas. El backend conserva eventos y publica por WebSocket; Pages los calcula en memoria. Exportar eventos CSV descarga la actividad de esta sesión. La edición local recupera los últimos 100 eventos del proyecto y combina ese historial con WebSocket sin duplicados. Los eventos de otro proyecto no aparecen en su gráfica. Pages mantiene los eventos de simulación en memoria; las escenas y los metadatos sí persisten en IndexedDB.
 
 Agrega una Cámara IP y conéctala a un puerto libre del switch. **Vista de cámara virtual** sitúa la cámara del render en su ubicación; **Simular movimiento** genera un evento educativo si tiene conectividad con el router. Apagarla cierra la vista. No hay vídeo real. Una Bombilla IoT conectada permite alternar la iluminación; si se desconecta, la operación se rechaza.
 
@@ -205,7 +208,7 @@ Esta entrega amplía las fases 2–6 y añade pruebas y documentación de la fas
 - `nat=true` demuestra traducción de dirección de origen en ICMP y su efecto en reglas posteriores. No implementa tablas PAT con puertos TCP/UDP, expiración de sesiones ni un firewall con estado.
 - DHCP asigna direcciones deterministas sin negociación de broadcast ni expiración de concesiones. No hay DNS/HTTP virtual ni tablas ARP/MAC aprendidas y consultables.
 - La topología es un SVG interactivo sincronizado, sin editor React Flow. Los modelos GLB/GLTF todavía no se importan.
-- Se guarda un proyecto completo como escena JSON en PostgreSQL; faltan creación de múltiples proyectos desde la interfaz, CRUD individual de habitaciones/dispositivos y tablas relacionales independientes para cada entidad del dominio.
+- Se guarda un proyecto completo como escena JSON en PostgreSQL; faltan CRUD individual de habitaciones/dispositivos y tablas relacionales independientes para cada entidad del dominio. La gestión de múltiples proyectos ya está disponible.
 - Los paneles laterales se redimensionan y ocultan; los apartados inferiores se contraen. La posición libre de la cámara no se persiste. El paquete Three.js/Recharts sigue siendo grande y Vite avisa durante la compilación.
 
 ## Verificación de esta entrega
@@ -213,3 +216,13 @@ Esta entrega amplía las fases 2–6 y añade pruebas y documentación de la fas
 Los motores Java y TypeScript consumen los mismos **16 escenarios deterministas** en `backend/src/test/resources/network-cases.json`: LAN, cable desconectado, interfaz apagada, VLAN aislada/compartida, trunk correcto/incorrecto, rutas y retorno, firewall, traducción de origen, Wi-Fi dentro/fuera de alcance y fibra. `frontend/tests/create-fixtures.ts` regenera esos casos; no son tráfico físico.
 
 Las pruebas de navegador cubren CLI Java, persistencia de interfaces, WebSocket con eventos de 64 bytes, arrastre de etiquetas, cámaras, bombillas, JSON portable y Pages sin API. Revisa los resultados del comando en tu entorno; el repositorio no sustituye una ejecución de pruebas por una afirmación de éxito.
+
+## Gestión de múltiples proyectos
+
+En **Mis proyectos**, escribe un nombre y pulsa **Nuevo proyecto** para abrir una nueva casa con la topología inicial. El selector recupera cada escena. **Renombrar proyecto** conserva su contenido; **Eliminar proyecto** pide confirmación y elimina únicamente el proyecto seleccionado y sus eventos. `write memory` guarda el proyecto activo. El JSON exportado es una escena portable y puede importarse dentro de cualquiera de los proyectos.
+
+Pages actualiza IndexedDB de v1 a v2 conservando la antigua escena de demostración. PostgreSQL aplica Flyway V4 para asociar los eventos a cada proyecto; los eventos anteriores pertenecen a la demostración. No se necesita borrar el volumen ni los datos del navegador.
+
+Pruebas adicionales: `MultipleProjectsTest` comprueba escenas independientes, nombres, borrado y eventos por proyecto; `projects.spec.ts` verifica creación, CLI, reapertura, renombrado y borrado en ambas ediciones; `projects-migration.spec.ts` comprueba la migración del navegador y la conservación de datos antiguos. Para estas últimas: `npx playwright test --config playwright.pages.config.ts` con Pages servido en el puerto 4173 bajo la subruta del repositorio. `project-events.spec.ts` verifica recepción y recuperación de eventos por proyecto en local.
+
+El workflow de Pages comprueba el motor TypeScript, compila la aplicación y ejecuta las tres pruebas de navegador sobre el artefacto estático antes de publicarlo. En CI se descarga Chromium de Playwright; localmente puede seguir usándose `/usr/bin/chromium` o establecer `PLAYWRIGHT_BUNDLED_CHROMIUM=1` tras instalarlo con Playwright.

@@ -24,6 +24,23 @@ jobs:
         working-directory: frontend
       - run: npm run build:pages
         working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Serve Pages artifact under the repository path
+        run: |
+          mkdir -p /tmp/smarthome-pages
+          ln -s "$GITHUB_WORKSPACE/frontend/dist" /tmp/smarthome-pages/SmartHome-_Cisco_3D.
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory /tmp/smarthome-pages > /tmp/pages-server.log 2>&1 &
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:4173/SmartHome-_Cisco_3D./ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Verify standalone Pages and project migration
+        run: npx playwright test --config playwright.pages.config.ts --workers=1
+        working-directory: frontend
+        env:
+          PLAYWRIGHT_BUNDLED_CHROMIUM: '1'
       - uses: actions/upload-pages-artifact@v3
         with:
           path: frontend/dist

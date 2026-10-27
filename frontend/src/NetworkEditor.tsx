@@ -1,7 +1,7 @@
 import AdvancedPanel from "./AdvancedPanel";
 import Telemetry from "./Telemetry";
 import { execute, type Context, commands } from "./cli";
-import { saveScene } from "./projectStorage";
+import { saveScene, getActiveProjectId } from "./projectStorage";
 import { useScene } from "./store";
 import { browserEdition } from "./projectStorage";
 import { useState, useEffect } from "react";
@@ -48,6 +48,7 @@ export default function NetworkEditor() {
           network: { devices: n.devices, links: n.links },
           source: d.id,
           target: ip,
+          projectId: getActiveProjectId(),
         }),
       },
     );
@@ -55,8 +56,10 @@ export default function NetworkEditor() {
     return (await r.json()) as ReturnType<typeof ping>;
   }
   async function run(trace = false) {
+    const projectId = getActiveProjectId();
     try {
       const result = await simulate(target, trace);
+      if (getActiveProjectId() !== projectId) return;
       useNetwork.getState().record(result);
       O(
         result.message +
@@ -71,6 +74,7 @@ export default function NetworkEditor() {
   }
   async function cli() {
     if (!d) return;
+    const projectId = getActiveProjectId();
     const text = cmd.trim();
     const network = { devices: n.devices, links: n.links };
     let r: ReturnType<typeof execute>;
@@ -79,11 +83,18 @@ export default function NetworkEditor() {
       const response = await fetch("/api/cli", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ network, source: d.id, context, command: text }),
+        body: JSON.stringify({
+          network,
+          source: d.id,
+          context,
+          command: text,
+          projectId,
+        }),
       });
       if (!response.ok) throw Error("Sintaxis o modo incorrectos. Usa ?");
       r = await response.json();
     }
+    if (getActiveProjectId() !== projectId) return;
     useNetwork.setState({ ...r.network });
     if (r.trace) useNetwork.getState().record(r.trace);
     CTX(r.context);
@@ -106,13 +117,16 @@ export default function NetworkEditor() {
     );
     if (r.save) {
       const scene = useScene.getState();
-      await saveScene({
-        version: 1,
-        view: scene.view,
-        walls: scene.walls,
-        selected: scene.selected,
-        network: r.network,
-      });
+      await saveScene(
+        {
+          version: 1,
+          view: scene.view,
+          walls: scene.walls,
+          selected: scene.selected,
+          network: r.network,
+        },
+        projectId,
+      );
       O((p) => p + "\nConfiguración guardada");
     }
   }

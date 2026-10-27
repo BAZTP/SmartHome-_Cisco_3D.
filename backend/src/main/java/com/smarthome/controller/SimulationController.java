@@ -12,7 +12,12 @@ public class SimulationController {
   public record Request(
       @NotNull @Valid NetworkDto network,
       @NotBlank @Size(max = 100) String source,
-      @NotBlank @Size(max = 15) String target) {}
+      @NotBlank @Size(max = 15) String target,
+      UUID projectId) {
+    public Request(NetworkDto network, String source, String target) {
+      this(network, source, target, null);
+    }
+  }
 
   public record Result(boolean ok, String message, List<String> path) {}
 
@@ -28,7 +33,7 @@ public class SimulationController {
   @PostMapping("/ping")
   public Result ping(@Valid @RequestBody Request request) {
     var result = simulator.ping(request);
-    events.record(request.source(), request.target(), result);
+    events.record(request.projectId(), request.source(), request.target(), result);
     return result;
   }
 
@@ -38,12 +43,13 @@ public class SimulationController {
   }
 
   @GetMapping("/events")
-  public List<Map<String, Object>> events() {
-    return events.list();
+  public List<com.smarthome.service.EventService.Entry> events(
+      @RequestParam(required = false) UUID projectId) {
+    return events.list(projectId);
   }
 
   @GetMapping("/metrics")
-  public Map<String, Object> metrics() {
-    return events.metrics();
+  public Map<String, Object> metrics(@RequestParam(required = false) UUID projectId) {
+    return events.metrics(projectId);
   }
 }

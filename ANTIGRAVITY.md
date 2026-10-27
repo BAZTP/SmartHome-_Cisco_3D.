@@ -20,12 +20,13 @@ Abre http://localhost:8088. Para desarrollar con recarga: PostgreSQL en Compose,
 - `NetworkScene.tsx`, `DeviceModel.tsx`, `House.tsx`: dispositivos, arrastre, cables, paquetes y cámara virtual.
 - `Telemetry.tsx`: topología SVG sincronizada, pasos, gráficas, CSV e IoT.
 - `EventService` / `EventSocket`: eventos persistidos y WebSocket. Nginx y Vite redirigen `/ws`.
-- `projectStorage.ts`: IndexedDB para Pages y REST para local. Escena v1 admite configuraciones opcionales y escenas antiguas.
-- Flyway V1–V3: proyecto, escena JSON y eventos. Añade migraciones; no cambies las aplicadas.
+- `projectStorage.ts`: IndexedDB v2 para Pages y REST para local, con metadatos y escenas por UUID. Conserva la migración desde v1. `ProjectManager.tsx` gestiona múltiples proyectos; el guardado CLI usa el UUID activo. Escena v1 admite configuraciones opcionales y escenas antiguas.
+- Los eventos llevan `projectId`; consultas REST y gráficos se filtran por proyecto. WebSocket emite ID estable para fusionar historial y eventos sin duplicados.
+- Flyway V1–V4: proyectos, escena JSON y eventos asociados a cada proyecto. Añade migraciones; no cambies las aplicadas.
 
 ## Pendientes prioritarios
 
-El README detalla lo que no está implementado. Para completar el prompt maestro: tablas ARP/MAC, PAT por sesiones, traceroute con TTL, editor visual de reglas y rutas, múltiples proyectos y dominio relacional, importación GLTF, editor de topología más completo y optimización del paquete gráfico. No presentes el NAT ICMP o el recorrido lógico como una implementación completa de PAT/traceroute.
+El README detalla lo que no está implementado. Para completar el prompt maestro: tablas ARP/MAC, PAT por sesiones, traceroute con TTL, editor visual de reglas y rutas, dominio relacional detallado, importación GLTF, editor de topología más completo y optimización del paquete gráfico. No presentes el NAT ICMP o el recorrido lógico como una implementación completa de PAT/traceroute.
 
 ## Verificar antes de publicar
 

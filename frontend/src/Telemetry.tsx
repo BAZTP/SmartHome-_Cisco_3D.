@@ -1,5 +1,5 @@
 import Topology from "./Topology";
-import { browserEdition } from "./projectStorage";
+import { browserEdition, getActiveProjectId } from "./projectStorage";
 import { useEffect, useState } from "react";
 import {
   ResponsiveContainer,
@@ -14,10 +14,18 @@ import { configuration } from "./advanced";
 export default function Telemetry() {
   const [live, L] = useState("Conectando"),
     [remote, RM] = useState<
-      { time: string; ok: boolean; message: string; bytes: number }[]
+      {
+        id: number;
+        time: string;
+        ok: boolean;
+        message: string;
+        bytes: number;
+      }[]
     >([]);
   useEffect(() => {
     if (browserEdition) return;
+    const projectId = getActiveProjectId();
+    const controller = new AbortController();
     let ws: WebSocket | undefined,
       timer: ReturnType<typeof setTimeout>,
       closed = false;
@@ -25,11 +33,40 @@ export default function Telemetry() {
       ws = new WebSocket(
         `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/events`,
       );
-      ws.onopen = () => L("WebSocket conectado");
+      ws.onopen = () => {
+        L("WebSocket conectado");
+        void fetch(`/api/simulation/events?projectId=${projectId}`, {
+          signal: controller.signal,
+        })
+          .then((response) => {
+            if (!response.ok) throw Error("Historial no disponible");
+            return response.json();
+          })
+          .then((events) => {
+            if (!closed)
+              RM((current) =>
+                Array.from(
+                  new Map(
+                    [...events, ...current].map((e) => [e.id, e]),
+                  ).values(),
+                )
+                  .sort((a, b) => a.id - b.id)
+                  .slice(-100),
+              );
+          })
+          .catch((error) => {
+            if (!closed && error.name !== "AbortError")
+              L("WebSocket conectado · historial no disponible");
+          });
+      };
       ws.onmessage = (e) => {
         try {
           const event = JSON.parse(e.data);
-          RM((v) => [...v.slice(-99), event]);
+          if (event.projectId === projectId)
+            RM((v) => [
+              ...v.filter((x) => x.id !== event.id).slice(-99),
+              event,
+            ]);
         } catch {
           L("Evento inválido");
         }
@@ -42,6 +79,7 @@ export default function Telemetry() {
     connect();
     return () => {
       closed = true;
+      controller.abort();
       clearTimeout(timer);
       ws?.close();
     };
@@ -91,6 +129,12 @@ export default function Telemetry() {
       <summary>Topología, paquetes y monitoreo virtual</summary>
       <button onClick={exportEvents}>Exportar eventos CSV</button>
       <p>{browserEdition ? "Eventos calculados en el navegador" : live}</p>
+      {!browserEdition && (
+        <p aria-label="Historial del proyecto">
+          {remote.length} eventos del proyecto ·{" "}
+          {remote.reduce((sum, e) => sum + e.bytes, 0)} bytes virtuales
+        </p>
+      )}
       <p>
         {n.devices.filter((d) => d.on).length} activos ·{" "}
         {

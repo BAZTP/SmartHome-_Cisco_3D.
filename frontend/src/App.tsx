@@ -1,3 +1,4 @@
+import ProjectManager from "./ProjectManager";
 import Topology from "./Topology";
 import NetworkEditor from "./NetworkEditor";
 import { useNetwork, demo, kinds } from "./network";
@@ -20,6 +21,7 @@ import { useScene, type View } from "./store";
 import SceneBoundary from "./SceneBoundary";
 import {
   browserEdition,
+  getActiveProjectId,
   saveScene,
   loadScene,
   validateScene,
@@ -110,7 +112,10 @@ function App() {
       if (!r.ok) throw Error("HTTP " + r.status);
       const data = await r.json();
       if (!data[0]?.name) throw Error("Sin proyecto inicial");
-      P(data[0].name);
+      P(
+        data.find((p: { id: string }) => p.id === getActiveProjectId())?.name ??
+          "Casa de demostración",
+      );
       S("API y PostgreSQL conectados");
     } catch {
       S("Backend sin conexión");
@@ -170,11 +175,14 @@ function App() {
           <button disabled={busy} onClick={() => void load()}>
             Cargar proyecto
           </button>
-          <button onClick={exportProject}>Exportar JSON</button>
+          <button disabled={busy} onClick={exportProject}>
+            Exportar JSON
+          </button>
           <label className="import-button">
             Importar JSON
             <input
               aria-label="Importar proyecto"
+              disabled={busy}
               type="file"
               accept=".json,application/json"
               onChange={(e) => {
@@ -185,7 +193,14 @@ function App() {
           </label>
         </div>
       </div>
-      <main id="design">
+      <ProjectManager
+        snapshot={snapshot}
+        restore={restore}
+        busy={busy}
+        setBusy={setBusy}
+        onOpened={(p) => P(p.name)}
+      />
+      <main id="design" inert={busy}>
         {left && (
           <aside className="left">
             <div className="paneltitle catalog">CATÁLOGO · LABORATORIO</div>
@@ -401,7 +416,9 @@ function App() {
           </aside>
         )}
       </main>
-      <NetworkEditor />
+      <div inert={busy}>
+        <NetworkEditor key={getActiveProjectId()} />
+      </div>
       <footer>
         <span>
           <span className="dot" /> Motor gráfico activo

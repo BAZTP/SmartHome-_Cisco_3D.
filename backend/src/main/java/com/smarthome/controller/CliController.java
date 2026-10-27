@@ -22,7 +22,12 @@ public class CliController {
       @NotNull @Valid NetworkDto network,
       @NotBlank @Size(max = 100) String source,
       @NotNull @Valid Context context,
-      @NotNull @Size(max = 512) String command) {}
+      @NotNull @Size(max = 512) String command,
+      UUID projectId) {
+    public Request(NetworkDto network, String source, Context context, String command) {
+      this(network, source, context, command, null);
+    }
+  }
 
   public record Response(
       NetworkDto network,
@@ -130,7 +135,7 @@ public class CliController {
       else if ((parts[0].equals("ping") || parts[0].equals("traceroute")) && parts.length == 2) {
         var r = simulator.ping(new SimulationController.Request(req.network(), d.id(), parts[1]));
         trace = r;
-        events.record(d.id(), parts[1], r);
+        events.record(req.projectId(), d.id(), parts[1], r);
         output = r.message() + "\n" + String.join(" → ", r.path());
       } else if (text.equals("write memory") && mode.equals("PRIVILEGIADO")) {
         save = true;
