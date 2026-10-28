@@ -1,3 +1,5 @@
+import SimulationControls from "./SimulationControls";
+import { useDesign, designSnapshot, defaultDesign } from "./design";
 import { useModels, emptyModels, modelSnapshot } from "./models";
 import ProjectManager from "./ProjectManager";
 import Topology from "./Topology";
@@ -17,7 +19,7 @@ import {
   PanelRightClose,
 } from "lucide-react";
 import { layout } from "./Architecture";
-import House, { rooms } from "./House";
+import House from "./House";
 import { useScene, type View } from "./store";
 import SceneBoundary from "./SceneBoundary";
 import {
@@ -31,13 +33,20 @@ import {
 const staticDemo = browserEdition;
 function App() {
   const network = useNetwork();
+  const design = useDesign();
+  const rooms = Array.from(
+    { length: 9 },
+    (_, id) => design.rooms.find((r) => r.id === id)?.name ?? "Espacio vacío",
+  );
   const { view, setView, walls, toggleWalls, selected, select } = useScene();
+  const [editorOpen, setEditorOpen] = useState(false);
   const [left, L] = useState(true),
     [right, R] = useState(true);
   const [operation, setOperation] = useState("");
   const [busy, setBusy] = useState(false);
   const snapshot = (): SceneSnapshot => ({
     version: 1,
+    design: designSnapshot(network),
     models: modelSnapshot(network.devices.map((d) => d.id)),
     view,
     walls,
@@ -46,6 +55,7 @@ function App() {
   });
   const restore = (scene: SceneSnapshot) => {
     network.setNetwork(scene.network ?? demo());
+    useDesign.getState().restore(scene.design ?? defaultDesign());
     useModels.getState().restore(scene.models ?? emptyModels());
     useScene.setState({
       view: scene.view,
@@ -196,6 +206,7 @@ function App() {
           </label>
         </div>
       </div>
+      <SimulationControls key={getActiveProjectId()} />
       <ProjectManager
         snapshot={snapshot}
         restore={restore}
@@ -223,7 +234,8 @@ function App() {
                   try {
                     network.add(
                       kind,
-                      Math.max(0, rooms.indexOf(selected ?? "Sala")),
+                      design.rooms.find((r) => r.name === selected)?.id ??
+                        design.rooms[0].id,
                     );
                   } catch (e) {
                     setOperation(String(e));
@@ -241,17 +253,20 @@ function App() {
             <p className="muted">
               Selecciona una habitación para inspeccionarla.
             </p>
-            {rooms.map((r, i) => (
-              <button
-                className={"room " + (selected === r ? "chosen" : "")}
-                key={r}
-                onClick={() => select(r)}
-              >
-                <Box size={16} />
-                <span>{r}</span>
-                <small>{String(i + 1).padStart(2, "0")}</small>
-              </button>
-            ))}
+            {rooms.map(
+              (r, i) =>
+                design.rooms.some((room) => room.id === i) && (
+                  <button
+                    className={"room " + (selected === r ? "chosen" : "")}
+                    key={r}
+                    onClick={() => select(r)}
+                  >
+                    <Box size={16} />
+                    <span>{r}</span>
+                    <small>{String(i + 1).padStart(2, "0")}</small>
+                  </button>
+                ),
+            )}
           </aside>
         )}
         <section className="viewport">
@@ -275,7 +290,13 @@ function App() {
               <button
                 className={view === v ? "selected" : ""}
                 key={v}
-                onClick={() => setView(v)}
+                onClick={() => {
+                  useDesign.setState((s) => ({
+                    camera: null,
+                    cameraRevision: s.cameraRevision + 1,
+                  }));
+                  setView(v);
+                }}
               >
                 {v === "Isométrica" && <Rotate3D size={16} />} {v}
               </button>
@@ -290,6 +311,38 @@ function App() {
             >
               <PanelRightClose size={17} />
             </button>
+          </div>
+          <div className="visual-options">
+            <button
+              onClick={() =>
+                useDesign.setState({ connections: !design.connections })
+              }
+            >
+              {design.connections ? "Ocultar conexiones" : "Mostrar conexiones"}
+            </button>
+            <button
+              disabled={!network.selected}
+              onClick={() =>
+                network.selected && design.focusDevice(network.selected)
+              }
+            >
+              Enfocar dispositivo
+            </button>
+            <label>
+              Calidad{" "}
+              <select
+                aria-label="Calidad gráfica"
+                value={design.quality}
+                onChange={(e) =>
+                  useDesign.setState({
+                    quality: e.target.value as "balanced" | "high",
+                  })
+                }
+              >
+                <option value="high">Alta · 2×</option>
+                <option value="balanced">Equilibrada · 1×</option>
+              </select>
+            </label>
           </div>
           <div className="scenefooter">
             <span>
@@ -312,6 +365,7 @@ function App() {
                 aria-label="Plano interactivo de habitaciones"
               >
                 {rooms.map((name, i) => {
+                  if (!design.rooms.some((room) => room.id === i)) return null;
                   const [x, z] = layout[i];
                   return (
                     <g
@@ -420,6 +474,13 @@ function App() {
         )}
       </main>
       <div inert={busy}>
+        <details
+          className="topology-workspace"
+          onToggle={(e) => setEditorOpen(e.currentTarget.open)}
+        >
+          <summary>Abrir editor de topología</summary>
+          {editorOpen && <Topology key={"topology-" + getActiveProjectId()} />}
+        </details>
         <NetworkEditor key={getActiveProjectId()} />
       </div>
       <footer>

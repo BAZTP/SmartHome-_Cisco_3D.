@@ -73,11 +73,12 @@ public class NetworkSimulator {
       int incoming,
       String nextHop,
       String wireSource,
-      List<Hop> hops) {}
+      List<Hop> hops,
+      int ttl) {}
 
   public Result ping(Request r) {
     try {
-      return run(r, null, false, true);
+      return run(r, null, false, true, 64);
     } catch (IllegalArgumentException | NullPointerException e) {
       return fail("Configuración de red inválida");
     }
@@ -85,13 +86,13 @@ public class NetworkSimulator {
 
   public Result direction(Request r, String sourceAddress, boolean translate) {
     try {
-      return run(r, sourceAddress, true, translate);
+      return run(r, sourceAddress, true, translate, 64);
     } catch (IllegalArgumentException | NullPointerException e) {
       return fail("Configuración de red inválida");
     }
   }
 
-  private Result run(Request r, String sourceAddress, boolean oneWay, boolean translate) {
+  private Result run(Request r, String sourceAddress, boolean oneWay, boolean translate, int ttl) {
     var n = r.network();
     var a = n.devices().stream().filter(d -> d.id().equals(r.source())).findFirst().orElse(null);
     var b =
@@ -121,14 +122,14 @@ public class NetworkSimulator {
                 .count()
             > 1) return fail("Dirección IP duplicada");
     var forward =
-        search(r, a, b, sourceAddress == null ? a.ip() : sourceAddress, r.target(), translate);
+        search(r, a, b, sourceAddress == null ? a.ip() : sourceAddress, r.target(), translate, ttl);
     if (!forward.ok() || oneWay) return forward;
-    var back = search(r, b, a, r.target(), a.ip(), translate);
+    var back = search(r, b, a, r.target(), a.ip(), translate, 64);
     return back.ok() ? forward : fail("Sin retorno: " + back.message());
   }
 
   private Result search(
-      Request req, Device start, Device end, String src, String dst, boolean translate) {
+      Request req, Device start, Device end, String src, String dst, boolean translate, int ttl) {
     var n = req.network();
     var queue = new ArrayDeque<State>();
     queue.add(
@@ -139,7 +140,8 @@ public class NetworkSimulator {
             -1,
             same(start.ip(), dst, start.prefix()) ? dst : config(start).gateway(),
             src,
-            List.of()));
+            List.of(),
+            ttl));
     var seen = new HashSet<String>();
     String reason =
         same(start.ip(), dst, start.prefix())
@@ -182,6 +184,9 @@ public class NetworkSimulator {
                 || !c.interfaces().get(state.incoming()).ip().equals(expected))) {
           continue;
         }
+        if (!d.id().equals(start.id()) && state.ttl() <= 1)
+          return new Result(
+              false, "TTL agotado en " + d.name(), state.path(), state.hops(), d.id(), List.of());
         boolean direct =
             c.interfaces().stream()
                 .anyMatch(p -> p.enabled() && !p.ip().isEmpty() && same(p.ip(), dst, p.prefix()));
@@ -243,9 +248,88 @@ public class NetworkSimulator {
                 in,
                 next,
                 routed && c.nat() && translate ? p.ip() : state.wireSource(),
-                hops));
+                hops,
+                state.ttl() - (router && !d.id().equals(start.id()) ? 1 : 0)));
       }
     }
     return fail(reason);
+  }
+
+  public Result traceroute(Request req, int maxTtl) {
+    if (maxTtl < 1 || maxTtl > 30) throw new IllegalArgumentException("TTL máximo: 1–30");
+    var probes = new ArrayList<com.smarthome.controller.SimulationController.Probe>();
+    Result last = fail("Sin sondas");
+    for (int ttl = 1; ttl <= maxTtl; ttl++) {
+      last = run(req, null, true, true, ttl);
+      String responder =
+          last.expired() != null ? last.expired() : last.ok() ? last.path().getLast() : null;
+      if (responder == null) {
+        probes.add(
+            new com.smarthome.controller.SimulationController.Probe(
+                ttl, null, null, "unreachable", null, last.message()));
+        break;
+      }
+      var d =
+          req.network().devices().stream()
+              .filter(v -> v.id().equals(responder))
+              .findFirst()
+              .orElseThrow();
+      var origin =
+          req.network().devices().stream()
+              .filter(v -> v.id().equals(req.source()))
+              .findFirst()
+              .orElseThrow();
+      int incoming = last.hops().isEmpty() ? 0 : last.hops().getLast().incoming();
+      String address =
+          last.expired() != null ? config(d).interfaces().get(incoming).ip() : req.target();
+      var reply = direction(new Request(req.network(), responder, origin.ip()), address, false);
+      probes.add(
+          new com.smarthome.controller.SimulationController.Probe(
+              ttl,
+              reply.ok() ? responder : null,
+              reply.ok() ? address : null,
+              reply.ok() ? last.ok() ? "reached" : "time-exceeded" : "timeout",
+              reply.ok() ? last.hops().size() + reply.hops().size() + 1 : null,
+              reply.ok()
+                  ? last.ok() ? "Destino alcanzado" : "ICMP Time Exceeded"
+                  : "Sin retorno: " + reply.message()));
+      if (last.ok()) {
+        last =
+            new Result(
+                reply.ok(),
+                reply.ok() ? "Destino alcanzado" : "Sin retorno: " + reply.message(),
+                last.path(),
+                last.hops());
+        break;
+      }
+    }
+    boolean ok = probes.getLast().status().equals("reached");
+    return new Result(
+        ok,
+        ok
+            ? "Traceroute ICMP virtual completado"
+            : last.expired() != null ? "Límite TTL alcanzado" : last.message(),
+        last.path(),
+        last.hops(),
+        last.expired(),
+        probes);
+  }
+
+  public String formatTrace(Result r) {
+    return r.message()
+        + (r.probes().isEmpty()
+            ? ""
+            : "\nTTL · Respuesta · Tiempo virtual\n"
+                + r.probes().stream()
+                    .map(
+                        p ->
+                            p.ttl()
+                                + "  "
+                                + (p.address() == null ? "*" : p.address())
+                                + "  "
+                                + (p.delayMs() == null ? "*" : p.delayMs() + " ms virtuales")
+                                + "  "
+                                + p.cause())
+                    .collect(java.util.stream.Collectors.joining("\n")));
   }
 }

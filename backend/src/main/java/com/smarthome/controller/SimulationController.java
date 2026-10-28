@@ -21,17 +21,34 @@ public class SimulationController {
 
   public record Hop(String from, String to, int out, int incoming, int vlan) {}
 
-  public record Result(boolean ok, String message, List<String> path, List<Hop> hops) {
+  public record Probe(
+      int ttl, String device, String address, String status, Integer delayMs, String cause) {}
+
+  public record Result(
+      boolean ok,
+      String message,
+      List<String> path,
+      List<Hop> hops,
+      String expired,
+      List<Probe> probes) {
+    public Result(boolean ok, String message, List<String> path, List<Hop> hops) {
+      this(ok, message, path, hops, null, List.of());
+    }
+
     public Result(boolean ok, String message, List<String> path) {
       this(ok, message, path, List.of());
     }
   }
 
+  private final com.smarthome.service.NetworkSimulator simulator;
   private final com.smarthome.service.RuntimeService runtime;
   private final com.smarthome.service.EventService events;
 
   public SimulationController(
-      com.smarthome.service.RuntimeService runtime, com.smarthome.service.EventService events) {
+      com.smarthome.service.RuntimeService runtime,
+      com.smarthome.service.EventService events,
+      com.smarthome.service.NetworkSimulator simulator) {
+    this.simulator = simulator;
     this.runtime = runtime;
     this.events = events;
   }
@@ -51,14 +68,24 @@ public class SimulationController {
   }
 
   @PostMapping("/traceroute")
-  public Result trace(@Valid @RequestBody Request request) {
-    return ping(request);
+  public Result trace(
+      @Valid @RequestBody Request request,
+      @RequestParam(defaultValue = "30") @Min(1) @Max(30) int maxTtl) {
+    var result = simulator.traceroute(request, maxTtl);
+    events.record(request.projectId(), request.source(), request.target(), result);
+    return result;
   }
 
   @GetMapping("/events")
   public List<com.smarthome.service.EventService.Entry> events(
       @RequestParam(required = false) UUID projectId) {
     return events.list(projectId);
+  }
+
+  @GetMapping("/traces")
+  public List<com.smarthome.service.EventService.TraceEntry> traces(
+      @RequestParam(required = false) UUID projectId) {
+    return events.traces(projectId);
   }
 
   @GetMapping("/metrics")

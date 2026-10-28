@@ -1,3 +1,4 @@
+import { traceroute, formatTrace } from "./traceroute.ts";
 import { runtime } from "./runtime.ts";
 import { configuration, dhcpLease } from "./advanced.ts";
 import { type Network, validateNetwork, ipv4, ping } from "./network.ts";
@@ -126,14 +127,17 @@ export function execute(
     (parts[0] === "ping" || parts[0] === "traceroute") &&
     parts.length === 2
   ) {
-    const result = runtime(n, scope, {
-      action: "probe",
-      source: id,
-      target: parts[1],
-    }).result!;
+    const result =
+      parts[0] === "traceroute"
+        ? traceroute(n, id, parts[1])
+        : runtime(n, scope, {
+            action: "probe",
+            source: id,
+            target: parts[1],
+          }).result!;
     trace = result;
     output =
-      result.message +
+      formatTrace(result) +
       "\n" +
       result.path
         .map((x, i) => `${i + 1} ${n.devices.find((v) => v.id === x)?.name}`)

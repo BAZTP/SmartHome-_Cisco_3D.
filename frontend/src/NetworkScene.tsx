@@ -1,3 +1,4 @@
+import { useDesign } from "./design";
 import DeviceModel from "./DeviceModel";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useRef, useEffect } from "react";
@@ -7,15 +8,47 @@ import { configuration } from "./advanced";
 import { Html, Line } from "@react-three/drei";
 import { useNetwork } from "./network";
 import { layout } from "./Architecture";
-function Packet({ target }: { target: [number, number, number] }) {
-  const ref = useRef<Mesh>(null);
-  const initial = useRef(target);
+type Vec = [number, number, number];
+const cablePoints = (a: Vec, b: Vec): Vec[] => [
+  a,
+  [a[0], 0.2, a[2]],
+  [a[0], 0.2, b[2]],
+  [b[0], 0.2, b[2]],
+  b,
+];
+function Packet({ points }: { points: Vec[] }) {
+  const ref = useRef<Mesh>(null),
+    elapsed = useRef(0),
+    segment = useRef(""),
+    initial = useRef(points.at(-1));
   useFrame((_, delta) => {
-    const state = useNetwork.getState();
     if (!ref.current) return;
-    const v = new Vector3(...target);
-    if (state.playing) ref.current.position.lerp(v, Math.min(1, delta * 7));
-    else ref.current.position.copy(v);
+    const state = useNetwork.getState(),
+      key = JSON.stringify(points);
+    if (segment.current !== key) {
+      segment.current = key;
+      elapsed.current = 0;
+      ref.current.position.set(...(state.playing ? points[0] : points.at(-1)!));
+    }
+    if (!state.playing) return;
+    elapsed.current = Math.min(0.75, elapsed.current + delta);
+    const lengths = points
+      .slice(1)
+      .map((p, i) => Math.hypot(...p.map((v, j) => v - points[i][j])));
+    let distance =
+      (lengths.reduce((a, b) => a + b, 0) * elapsed.current) / 0.75;
+    for (let i = 0; i < lengths.length; i++) {
+      if (distance <= lengths[i] || i === lengths.length - 1) {
+        const fraction = lengths[i] ? Math.min(1, distance / lengths[i]) : 1;
+        ref.current.position.set(
+          ...(points[i].map(
+            (v, j) => v + (points[i + 1][j] - v) * fraction,
+          ) as Vec),
+        );
+        break;
+      }
+      distance -= lengths[i];
+    }
   });
   return (
     <mesh ref={ref} position={initial.current}>
@@ -26,6 +59,7 @@ function Packet({ target }: { target: [number, number, number] }) {
 }
 export default function NetworkScene() {
   const { camera, gl } = useThree();
+  const connections = useDesign((s) => s.connections);
   const cleanup = useRef<() => void>(() => {});
   useEffect(() => () => cleanup.current(), []);
   function dragLabel(e: React.PointerEvent<HTMLButtonElement>, id: string) {
@@ -66,19 +100,18 @@ export default function NetworkScene() {
       let room = 0,
         best = Infinity;
       layout.forEach(([x, z], i) => {
+        if (!useDesign.getState().rooms.some((r) => r.id === i)) return;
         const distance = (x - point.x) ** 2 + (z - point.z) ** 2;
         if (distance < best) {
           best = distance;
           room = i;
         }
       });
-      useNetwork
-        .getState()
-        .update(id, {
-          room,
-          x: Math.max(-1.8, Math.min(1.8, point.x - layout[room][0])),
-          z: Math.max(-1.5, Math.min(1.5, point.z - layout[room][1])),
-        });
+      useNetwork.getState().update(id, {
+        room,
+        x: Math.max(-1.8, Math.min(1.8, point.x - layout[room][0])),
+        z: Math.max(-1.5, Math.min(1.5, point.z - layout[room][1])),
+      });
     };
     const end = () => {
       window.removeEventListener("pointermove", move);
@@ -99,44 +132,54 @@ export default function NetworkScene() {
     const [x, z] = layout[d.room];
     return [x + d.x, 0.95, z + d.z];
   };
+  const previous = trace[Math.max(0, step - 1)],
+    current = trace[step];
+  const hop = links.find(
+    (l) =>
+      (l.a === previous && l.b === current) ||
+      (l.b === previous && l.a === current),
+  );
+  const packetPoints =
+    current && devices.some((d) => d.id === current)
+      ? hop
+        ? hop.a === previous
+          ? cablePoints(position(hop.a), position(hop.b))
+          : cablePoints(position(hop.a), position(hop.b)).reverse()
+        : [position(current), position(current)]
+      : [];
   return (
     <>
       {trace[step] && devices.some((d) => d.id === trace[step]) && (
-        <Packet target={position(trace[step])} />
+        <Packet points={packetPoints} />
       )}
-      {links.map((l) => {
-        const a = position(l.a),
-          b = position(l.b),
-          on =
-            devices.find((d) => d.id === l.a)!.on &&
-            devices.find((d) => d.id === l.b)!.on &&
-            configuration(devices.find((d) => d.id === l.a)!).interfaces[l.ap]
-              .enabled &&
-            configuration(devices.find((d) => d.id === l.b)!).interfaces[l.bp]
-              .enabled;
-        return (
-          <Line
-            key={l.id}
-            points={[
-              a,
-              [a[0], 0.2, a[2]],
-              [a[0], 0.2, b[2]],
-              [b[0], 0.2, b[2]],
-              b,
-            ]}
-            color={
-              !on
-                ? "#f75565"
-                : trace.includes(l.a) && trace.includes(l.b)
-                  ? "#ffdf65"
-                  : l.kind === "Wi-Fi"
-                    ? "#29aaff"
-                    : "#28cb88"
-            }
-            lineWidth={2}
-          />
-        );
-      })}
+      {connections &&
+        links.map((l) => {
+          const a = position(l.a),
+            b = position(l.b),
+            on =
+              devices.find((d) => d.id === l.a)!.on &&
+              devices.find((d) => d.id === l.b)!.on &&
+              configuration(devices.find((d) => d.id === l.a)!).interfaces[l.ap]
+                .enabled &&
+              configuration(devices.find((d) => d.id === l.b)!).interfaces[l.bp]
+                .enabled;
+          return (
+            <Line
+              key={l.id}
+              points={cablePoints(a, b)}
+              color={
+                !on
+                  ? "#f75565"
+                  : trace.includes(l.a) && trace.includes(l.b)
+                    ? "#ffdf65"
+                    : l.kind === "Wi-Fi"
+                      ? "#29aaff"
+                      : "#28cb88"
+              }
+              lineWidth={2}
+            />
+          );
+        })}
       {devices.map((d) => (
         <group
           key={d.id}
@@ -163,6 +206,7 @@ export default function NetworkScene() {
               let room = 0,
                 best = Infinity;
               layout.forEach(([x, z], i) => {
+                if (!useDesign.getState().rooms.some((r) => r.id === i)) return;
                 const distance = (x - point.x) ** 2 + (z - point.z) ** 2;
                 if (distance < best) {
                   best = distance;

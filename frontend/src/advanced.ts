@@ -127,7 +127,17 @@ export type Hop = {
   incoming: number;
   vlan: number;
 };
+export type Probe = {
+  ttl: number;
+  device: string | null;
+  address: string | null;
+  status: string;
+  delayMs: number | null;
+  cause: string;
+};
 export type Trace = {
+  expired?: string | null;
+  probes?: Probe[];
   hops?: Hop[];
   ok: boolean;
   message: string;
@@ -154,7 +164,12 @@ export function simulate(
   n: Network,
   source: string,
   target: string,
-  options: { oneWay?: boolean; translate?: boolean; wireSource?: string } = {},
+  options: {
+    oneWay?: boolean;
+    translate?: boolean;
+    wireSource?: string;
+    ttl?: number;
+  } = {},
 ): Trace {
   const a = n.devices.find((d) => d.id === source),
     b = n.devices.find(
@@ -193,6 +208,7 @@ export function simulate(
       wireSource: string;
       details: string[];
       hops: Hop[];
+      ttl: number;
     }[] = [
       {
         id: start.id,
@@ -205,6 +221,7 @@ export function simulate(
           : configuration(start).gateway,
         details: [],
         hops: [],
+        ttl: options.ttl ?? 64,
       },
     ];
     const seen = new Set<string>();
@@ -250,6 +267,14 @@ export function simulate(
         ) {
           continue;
         }
+        if (d.id !== start.id && state.ttl <= 1)
+          return {
+            ok: false,
+            message: "TTL agotado en " + d.name,
+            path: state.path,
+            hops: state.hops,
+            expired: d.id,
+          };
         const direct = c.interfaces.some(
           (p) => p.enabled && p.ip && same(p.ip, dstIp, p.prefix),
         );
@@ -303,6 +328,7 @@ export function simulate(
         if (dest.id === end.id && nextHop !== dstIp) continue;
         queue.push({
           id: dest.id,
+          ttl: state.ttl - (router && d.id !== start.id ? 1 : 0),
           path: [...state.path, dest.id],
           vlan,
           incoming: inPort,
@@ -355,7 +381,7 @@ export function dhcpLease(n: Network, id: string) {
         )
       )
         continue;
-      const copy = structuredClone(n),
+      const copy = structuredClone({devices: n.devices, links: n.links}),
         client = copy.devices.find((v) => v.id === id)!;
       client.ip = address;
       client.prefix = pool.prefix;

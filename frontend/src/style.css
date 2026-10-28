@@ -108,14 +108,14 @@ aside {
   background: #101a28;
   overflow: auto;
 }
-.left {
+aside.left {
   width: 245px;
   min-width: 195px;
   max-width: 350px;
   resize: horizontal;
   border-right: 1px solid #223247;
 }
-.right {
+aside.right {
   width: 268px;
   min-width: 220px;
   max-width: 380px;
@@ -301,7 +301,7 @@ footer {
   color: #6f8ba1;
 }
 @media (max-width: 1050px) {
-  .right {
+  aside.right {
     display: none;
   }
   .phase {
@@ -309,7 +309,7 @@ footer {
   }
 }
 @media (max-width: 700px) {
-  .left {
+  aside.left {
     display: none;
   }
   nav {
@@ -403,11 +403,11 @@ header {
   height: 42px;
   background: #07131e;
 }
-.left {
+aside.left {
   width: 218px;
   background: #07131e;
 }
-.right {
+aside.right {
   width: 255px;
   background: #07131e;
 }
@@ -545,24 +545,24 @@ main {
 .house-map .muted {
   font-size: 9px;
 }
-.right .inspectoricon {
+aside.right .inspectoricon {
   display: none;
 }
-.right h2 {
+aside.right h2 {
   margin-top: 12px;
 }
-.right dl {
+aside.right dl {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 7px;
   margin-top: 14px;
 }
-.right dt,
-.right dd {
+aside.right dt,
+aside.right dd {
   margin: 0;
   font-size: 10px;
 }
-.right .notice {
+aside.right .notice {
   font-size: 10px;
   padding: 10px;
 }
@@ -576,10 +576,10 @@ main {
 .workbench {
   height: 155px;
 }
-.left {
+aside.left {
   width: 205px;
 }
-.right {
+aside.right {
   width: 240px;
 }
 main {
@@ -596,10 +596,10 @@ main {
   padding: 7px;
 }
 @media (min-width: 1400px) {
-  .left {
+  aside.left {
     width: 225px;
   }
-  .right {
+  aside.right {
     width: 280px;
   }
   .workbench {
@@ -721,8 +721,358 @@ main {
   margin: 5px;
 }
 
-nav a{color:#9bb8c9;text-decoration:none;padding:10px;font-size:12px}nav a:hover{color:#3fd5e7}.catalog-device{display:flex;width:100%;gap:10px;text-align:left;align-items:center;margin:3px 0;font-size:11px;cursor:grab}.device-tag{touch-action:none;cursor:grab}.device-tag:active{cursor:grabbing}.device-status-list{max-height:220px;overflow:auto}.device-status-list button{display:block;width:100%;text-align:left;margin:3px 0;font-size:10px}.device-status-list small{display:block;color:#9cb5c6;margin-left:15px}html{scroll-behavior:smooth}#laboratory,#monitoring{scroll-margin-top:20px}
+nav a {
+  color: #9bb8c9;
+  text-decoration: none;
+  padding: 10px;
+  font-size: 12px;
+}
+nav a:hover {
+  color: #3fd5e7;
+}
+.catalog-device {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  text-align: left;
+  align-items: center;
+  margin: 3px 0;
+  font-size: 11px;
+  cursor: grab;
+}
+.device-tag {
+  touch-action: none;
+  cursor: grab;
+}
+.device-tag:active {
+  cursor: grabbing;
+}
+.device-status-list {
+  max-height: 220px;
+  overflow: auto;
+}
+.device-status-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 3px 0;
+  font-size: 10px;
+}
+.device-status-list small {
+  display: block;
+  color: #9cb5c6;
+  margin-left: 15px;
+}
+html {
+  scroll-behavior: smooth;
+}
+#laboratory,
+#monitoring {
+  scroll-margin-top: 20px;
+}
 
-.topology.compact{height:270px;max-height:none;width:100%}.left .catalog{margin-top:0}.viewport{min-height:460px}main{min-height:460px}nav{gap:12px}@media(min-width:1500px){.viewport,main{min-height:560px}}
+.topology.compact {
+  height: 270px;
+  max-height: none;
+  width: 100%;
+}
+aside.left .catalog {
+  margin-top: 0;
+}
+.viewport {
+  min-height: 460px;
+}
+main {
+  min-height: 460px;
+}
+nav {
+  gap: 12px;
+}
+@media (min-width: 1500px) {
+  .viewport,
+  main {
+    min-height: 560px;
+  }
+}
 
-.project-manager{padding:8px 20px;border-bottom:1px solid #233247;background:#0d1c2a;font-size:12px}.project-manager summary{cursor:pointer;color:#68d6e6}.project-manager-fields{display:flex;flex-wrap:wrap;gap:12px;align-items:end;padding-top:10px}.project-manager label{display:grid;gap:4px}.project-manager input,.project-manager select{background:#152d3c;border:1px solid #315065;border-radius:4px;padding:6px;color:#d9e7ed;max-width:260px}.project-manager p{color:#8ba7b9;font-size:11px;margin-top:8px}.project-manager button{padding:6px 10px;border:1px solid #315065;border-radius:4px}button:disabled{opacity:.5;cursor:default}
+.project-manager {
+  padding: 8px 20px;
+  border-bottom: 1px solid #233247;
+  background: #0d1c2a;
+  font-size: 12px;
+}
+.project-manager summary {
+  cursor: pointer;
+  color: #68d6e6;
+}
+.project-manager-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  padding-top: 10px;
+}
+.project-manager label {
+  display: grid;
+  gap: 4px;
+}
+.project-manager input,
+.project-manager select {
+  background: #152d3c;
+  border: 1px solid #315065;
+  border-radius: 4px;
+  padding: 6px;
+  color: #d9e7ed;
+  max-width: 260px;
+}
+.project-manager p {
+  color: #8ba7b9;
+  font-size: 11px;
+  margin-top: 8px;
+}
+.project-manager button {
+  padding: 6px 10px;
+  border: 1px solid #315065;
+  border-radius: 4px;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.topology-editor {
+  padding: 16px;
+  border: 1px solid #25445c;
+  border-radius: 10px;
+  background: #071522;
+  margin: 12px 0;
+}
+.topology-editor.compact {
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+.topology-node {
+  width: 200px;
+  border: 1px solid #37718a;
+  background: linear-gradient(140deg, #163347, #091c2b);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px #0008;
+  padding: 10px;
+  color: #d8ecf9;
+}
+.topology-node.chosen {
+  border-color: #42e2d0;
+  box-shadow: 0 0 16px #1bddbd44;
+}
+.topology-node strong,
+.topology-node small {
+  display: block;
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+.topology-node small {
+  color: #88a9bc;
+  font-size: 10px;
+}
+.topology-port {
+  position: relative;
+  font-size: 10px;
+  border-top: 1px solid #234254;
+  padding: 5px 10px;
+  color: #9ab9c9;
+}
+.topology-port .react-flow__handle {
+  width: 9px;
+  height: 9px;
+  background: #49d8bd;
+  border: 1px solid #dbfff6;
+}
+.topology-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.topology-toolbar label {
+  max-width: 210px;
+}
+.online-dot,
+.offline-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3ae6a5;
+  margin-right: 7px;
+}
+.offline-dot {
+  background: #ff596d;
+}
+.react-flow__controls-button {
+  background: #142c40 !important;
+  color: #c8e7f7 !important;
+}
+.react-flow__controls-button svg {
+  fill: currentColor;
+}
+.visual-options {
+  position: absolute;
+  left: 12px;
+  top: 50px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+.visual-options button,
+.visual-options label {
+  pointer-events: auto;
+  background: #081b2ce8;
+  border: 1px solid #29485b;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+.visual-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.visual-options select {
+  width: auto;
+  margin: 0;
+  padding: 2px;
+  font-size: 11px;
+}
+.simulation-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 18px;
+  background: #0a1b2c;
+  border-bottom: 1px solid #234055;
+  font-size: 12px;
+}
+.simulation-controls label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.simulation-controls input {
+  width: 145px;
+  margin: 0;
+}
+.simulation-controls button {
+  background: #126c5d;
+  border: 1px solid #26b699;
+  color: #dcfff3;
+}
+.services-editor {
+  border: 1px solid #25475d;
+  border-radius: 8px;
+  margin: 12px 0;
+  padding: 12px;
+}
+.services-editor details {
+  padding: 8px 0;
+}
+.services-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  text-align: left;
+}
+.services-editor th,
+.services-editor td {
+  border-bottom: 1px solid #253c4e;
+  padding: 8px;
+  font-size: 12px;
+}
+.app {
+  height: auto;
+  min-height: 100dvh;
+}
+.app > header,
+.projectbar,
+.simulation-controls {
+  flex-shrink: 0;
+}
+.app > main {
+  height: min(64vh, 760px);
+  min-height: 390px;
+  flex: none;
+}
+.topology-workspace {
+  margin: 8px 14px;
+  border: 1px solid #254558;
+  border-radius: 8px;
+  background: #091b2b;
+}
+.topology-workspace > summary {
+  cursor: pointer;
+  padding: 12px;
+  color: #8edbe4;
+  font-size: 13px;
+}
+.topology-workspace > .topology-editor {
+  margin: 0;
+  border: 0;
+}
+.network-editor {
+  resize: vertical;
+  height: 330px;
+  min-height: 260px;
+  max-height: 80vh;
+}
+@media (max-width: 700px) {
+  .app > main {
+    height: 65vh;
+    min-height: 380px;
+  }
+  .simulation-controls {
+    gap: 6px;
+    font-size: 10px;
+  }
+  .visual-options {
+    right: 6px;
+    left: 6px;
+    gap: 3px;
+  }
+}
+.simulation-controls input {
+  border: 1px solid #31546b;
+  background: #102739;
+  color: #e2f3ff;
+  padding: 6px 8px;
+  border-radius: 5px;
+}
+.simulation-controls button {
+  padding: 7px 12px;
+  min-height: 34px;
+  border-radius: 5px;
+  font-weight: 600;
+}
+.topology-editor.compact .topology-node {
+  width: 160px;
+  padding: 8px;
+}
+.topology-editor.compact .topology-node strong {
+  font-size: 15px;
+}
+.topology-editor.compact .topology-node small {
+  font-size: 11px;
+}
+.topology-editor.compact .topology-port {
+  height: 0;
+  padding: 0;
+  border: 0;
+}
+.topology-editor.compact .topology-port span {
+  display: none;
+}
+.topology-editor.compact .react-flow__handle {
+  visibility: hidden;
+}

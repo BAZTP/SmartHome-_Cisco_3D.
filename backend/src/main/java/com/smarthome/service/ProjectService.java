@@ -17,8 +17,13 @@ import org.springframework.web.server.ResponseStatusException;
 public class ProjectService {
   private final ProjectRepository repository;
   private final ObjectMapper mapper;
+  private final com.smarthome.repository.NetworkInventory inventory;
 
-  public ProjectService(ProjectRepository repository, ObjectMapper mapper) {
+  public ProjectService(
+      ProjectRepository repository,
+      ObjectMapper mapper,
+      com.smarthome.repository.NetworkInventory inventory) {
+    this.inventory = inventory;
     this.repository = repository;
     this.mapper = mapper;
   }
@@ -38,7 +43,11 @@ public class ProjectService {
 
   @Transactional
   public ProjectDto rename(UUID id, String name) {
-    var entity = project(id);
+    var entity =
+        repository
+            .lockById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado"));
     entity.setName(name.strip());
     return new ProjectDto(id, entity.getName());
   }
@@ -48,7 +57,11 @@ public class ProjectService {
     if (id.equals(UUID.fromString("00000000-0000-0000-0000-000000000001")))
       throw new ResponseStatusException(
           HttpStatus.CONFLICT, "La casa de demostración no se elimina");
-    repository.delete(project(id));
+    repository.delete(
+        repository
+            .lockById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado")));
   }
 
   @Transactional(readOnly = true)
@@ -76,9 +89,14 @@ public class ProjectService {
 
   @Transactional
   public void saveScene(UUID id, SceneDto scene) {
-    NetworkProject entity = project(id);
+    NetworkProject entity =
+        repository
+            .lockById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado"));
     try {
       entity.setSceneState(mapper.writeValueAsString(scene));
+      inventory.replace(id, scene);
     } catch (JsonProcessingException e) {
       throw new IllegalStateException("No se pudo serializar la escena", e);
     }

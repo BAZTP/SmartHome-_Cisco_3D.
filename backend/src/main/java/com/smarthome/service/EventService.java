@@ -34,9 +34,13 @@ public class EventService {
     return key;
   }
 
+  @org.springframework.transaction.annotation.Transactional
   public void record(UUID projectId, String source, String target, Result result) {
     UUID project = project(projectId);
-    int bytes = result.ok() ? 64 : 0;
+    int bytes =
+        result.probes().isEmpty()
+            ? (result.ok() ? 64 : 0)
+            : (int) result.probes().stream().filter(p -> p.delayMs() != null).count() * 64;
     Long id =
         db.queryForObject(
             "INSERT INTO simulation_event(project_id,source,target,success,bytes,message) VALUES"
@@ -49,7 +53,11 @@ public class EventService {
             bytes,
             result.message());
     try {
-      socket.publish(
+      db.update(
+          "INSERT INTO packet_trace(event_id,result) VALUES (?,?::jsonb)",
+          id,
+          mapper.writeValueAsString(result));
+      String message =
           mapper.writeValueAsString(
               new Entry(
                   id,
@@ -57,7 +65,18 @@ public class EventService {
                   java.time.Instant.now().toString(),
                   result.ok(),
                   result.message(),
-                  bytes)));
+                  bytes));
+      if (org.springframework.transaction.support.TransactionSynchronizationManager
+          .isSynchronizationActive())
+        org.springframework.transaction.support.TransactionSynchronizationManager
+            .registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                  @Override
+                  public void afterCommit() {
+                    socket.publish(message);
+                  }
+                });
+      else socket.publish(message);
     } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
       throw new IllegalStateException("No se pudo serializar evento", e);
     }
@@ -81,6 +100,33 @@ public class EventService {
     return db.queryForMap(
         "SELECT COUNT(*) AS events,COALESCE(SUM(bytes),0) AS virtual_bytes,COUNT(*) FILTER (WHERE"
             + " NOT success) AS failures FROM simulation_event WHERE project_id=?",
+        project(id));
+  }
+
+  public record TraceEntry(
+      long id,
+      String time,
+      String source,
+      String target,
+      com.fasterxml.jackson.databind.JsonNode result) {}
+
+  public List<TraceEntry> traces(UUID id) {
+    return db.query(
+        "SELECT e.id,e.occurred_at,e.source,e.target,t.result::text AS trace_json FROM"
+            + " simulation_event e JOIN packet_trace t ON t.event_id=e.id WHERE e.project_id=?"
+            + " ORDER BY e.id DESC LIMIT 100",
+        (rs, index) -> {
+          try {
+            return new TraceEntry(
+                rs.getLong("id"),
+                rs.getTimestamp("occurred_at").toInstant().toString(),
+                rs.getString("source"),
+                rs.getString("target"),
+                mapper.readTree(rs.getString("trace_json")));
+          } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new IllegalStateException("Traza inválida", e);
+          }
+        },
         project(id));
   }
 }

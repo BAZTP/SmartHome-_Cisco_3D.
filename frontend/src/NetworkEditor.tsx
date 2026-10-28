@@ -1,3 +1,6 @@
+import RoomEditor from "./RoomEditor";
+import { useDesign, designSnapshot } from "./design";
+import { traceroute, formatTrace } from "./traceroute";
 import ModelPanel from "./ModelPanel";
 import { modelSnapshot, useModels } from "./models";
 import RuntimePanel from "./RuntimePanel";
@@ -10,19 +13,10 @@ import { useScene } from "./store";
 import { browserEdition } from "./projectStorage";
 import { useState, useEffect } from "react";
 import { kinds, ports, ipv4, ping, useNetwork } from "./network";
-const names = [
-  "Sala",
-  "Comedor",
-  "Cocina",
-  "Dormitorio principal",
-  "Dormitorio secundario",
-  "Oficina",
-  "Garaje",
-  "Jardín",
-  "Telecomunicaciones",
-];
+
 export default function NetworkEditor() {
   const n = useNetwork();
+  const design = useDesign();
   const d = n.devices.find((d) => d.id === n.selected);
   const [kind, K] = useState(kinds[3]),
     [dest, D] = useState(""),
@@ -43,11 +37,13 @@ export default function NetworkEditor() {
   async function simulate(ip: string, trace = false) {
     if (!d) throw Error("Selecciona un dispositivo");
     if (browserEdition)
-      return runtime(n, getActiveProjectId(), {
-        action: "probe",
-        source: d.id,
-        target: ip,
-      }).result!;
+      return trace
+        ? traceroute(n, d.id, ip)
+        : runtime(n, getActiveProjectId(), {
+            action: "probe",
+            source: d.id,
+            target: ip,
+          }).result!;
     const r = await fetch(
       trace ? "/api/simulation/traceroute" : "/api/simulation/ping",
       {
@@ -62,7 +58,7 @@ export default function NetworkEditor() {
       },
     );
     if (!r.ok) throw Error("Error del motor Java");
-    return (await r.json()) as ReturnType<typeof ping>;
+    return (await r.json()) as import("./advanced").Trace;
   }
   async function run(trace = false) {
     const projectId = getActiveProjectId();
@@ -71,7 +67,7 @@ export default function NetworkEditor() {
       if (getActiveProjectId() !== projectId) return;
       useNetwork.getState().record(result);
       O(
-        result.message +
+        formatTrace(result) +
           "\n" +
           result.path
             .map((id) => n.devices.find((d) => d.id === id)?.name)
@@ -129,6 +125,7 @@ export default function NetworkEditor() {
       await saveScene(
         {
           version: 1,
+          design: designSnapshot(r.network),
           models: modelSnapshot(r.network.devices.map((d) => d.id)),
           view: scene.view,
           walls: scene.walls,
@@ -162,7 +159,7 @@ export default function NetworkEditor() {
             title="Haz clic para agregar o arrastra a una habitación"
             onClick={() => {
               try {
-                n.add(kind, 0);
+                n.add(kind, design.rooms[0].id);
               } catch (e) {
                 O(String(e));
               }
@@ -216,7 +213,7 @@ export default function NetworkEditor() {
                     n.update(d.id, { room: Number(e.target.value) })
                   }
                 >
-                  {names.map((r, i) => (
+                  {design.rooms.map(({ name: r, id: i }) => (
                     <option key={r} value={i}>
                       {r}
                     </option>
@@ -419,6 +416,7 @@ export default function NetworkEditor() {
           </button>
         ))}
       </div>
+      <RoomEditor />
       <AdvancedPanel />
       <RuntimePanel />
       <ModelPanel />

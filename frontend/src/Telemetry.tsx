@@ -1,4 +1,3 @@
-import Topology from "./Topology";
 import { browserEdition, getActiveProjectId } from "./projectStorage";
 import { useEffect, useState } from "react";
 import {
@@ -145,7 +144,6 @@ export default function Telemetry() {
         interfaces desactivadas · {n.events.reduce((s, e) => s + e.bytes, 0)}{" "}
         bytes virtuales
       </p>
-      <Topology />
       <button
         disabled={!n.trace.length}
         onClick={() => useNetwork.setState({ playing: !n.playing })}

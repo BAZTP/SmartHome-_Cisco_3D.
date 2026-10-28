@@ -73,7 +73,7 @@ test("CLI modos, máscara, shutdown de interfaz, persistencia y errores", () => 
   command("end");
   assert.equal(command("write memory").save, true);
   assert.equal(n.devices[1].name, "Core");
-  assert.equal(command("ping 192.168.1.102").trace?.ok,true);
+  assert.equal(command("ping 192.168.1.102").trace?.ok, true);
   assert.deepEqual(validateNetwork(JSON.parse(JSON.stringify(n))), n);
   assert.throws(() => command("rm -rf /"));
 });
@@ -98,4 +98,18 @@ test("valida compatibilidad de medios", () => {
   assert.throws(() => validateNetwork(n));
   n.links[1].kind = "Wi-Fi";
   assert.throws(() => validateNetwork(n));
+});
+test("DHCP acepta el estado del navegador sin clonar sus acciones", () => {
+  const n = demo();
+  const router = n.devices.find((d) => d.id === "Router")!;
+  router.config = configuration(router);
+  router.config.dhcp = {
+    start: "192.168.1.150",
+    end: "192.168.1.180",
+    gateway: "192.168.1.1",
+    prefix: 24,
+  };
+  const state = { ...n, select: () => {} };
+  assert.equal(dhcpLease(state, "PC").ip, "192.168.1.150");
+  assert.equal(n.devices.find((d) => d.id === "PC")!.ip, "192.168.1.101");
 });

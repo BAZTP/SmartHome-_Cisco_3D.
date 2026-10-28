@@ -1,5 +1,7 @@
 # SmartHome Cisco 3D — Interactive Network Simulator
 
+![Captura real de la edición Pages](docs/simulator-desktop.png)
+
 Dos ediciones de la misma aplicación educativa, sin afiliación con Cisco:
 
 | Edición | Ejecución | Persistencia | Requisitos |
@@ -13,7 +15,7 @@ Ambas comparten interfaz y formato de escena. No se duplican fuentes ni se manti
 
 Casa 3D esquemática de nueve zonas y mobiliario generado por código; órbita, zoom, desplazamiento, vistas isométrica/superior/interior, selección de habitaciones, paredes conmutables y paneles laterales redimensionables/ocultables. Interfaz adaptable con mensajes de errores visibles.
 
-**Guardar proyecto** conserva la vista predefinida, visibilidad de paredes, habitación seleccionada, dispositivos y enlaces. **Cargar proyecto** recupera explícitamente esa escena, incluso después de recargar. No se guarda automáticamente; tampoco se guarda aún la posición libre de la cámara al orbitar. Exportar/importar JSON permite trasladar ese estado entre ambas ediciones. Importar no guarda hasta pulsar Guardar. Cada proyecto tiene su propia escena. **Mis proyectos** permite crear, abrir, renombrar y eliminar casas; la demostración no se elimina. Al cambiar o crear un proyecto se guardan los cambios del actual. Al recargar la página se muestra inicialmente la demostración; abrir otro proyecto recupera su escena guardada sin sobrescribir las demás.
+**Guardar proyecto** conserva la vista, la posición libre de la cámara, paredes y conexiones visibles, calidad gráfica, habitaciones, posiciones lógicas, dispositivos y enlaces. **Cargar proyecto** recupera explícitamente esa escena, incluso después de recargar. No se guarda automáticamente; pulsa Guardar después de editar o mover la cámara. Exportar/importar JSON permite trasladar ese estado entre ambas ediciones. Importar no guarda hasta pulsar Guardar. Cada proyecto tiene su propia escena. **Mis proyectos** permite crear, abrir, renombrar y eliminar casas; la demostración no se elimina. Al cambiar o crear un proyecto se guardan los cambios del actual. Al recargar la página se muestra inicialmente la demostración; abrir otro proyecto recupera su escena guardada sin sobrescribir las demás.
 
 El laboratorio incluye edición y arrastre 3D, interfaces independientes, tres medios de conexión, simulación IPv4, CLI, topología sincronizada, reproducción de paquetes, monitoreo, cámaras e iluminación virtual. El apartado de alcance describe las simplificaciones educativas.
 
@@ -55,7 +57,7 @@ curl http://localhost:8088/actuator/health
 curl http://localhost:8088/api/projects
 ```
 
-Nginx sirve el frontend local y redirige API y OpenAPI al contenedor Java. PostgreSQL conserva los datos en un volumen. Flyway crea el proyecto inicial, el campo de escena y el historial de eventos. La interfaz muestra “API y PostgreSQL conectados” cuando puede consultar el proyecto.
+Nginx sirve el frontend local y redirige API y OpenAPI al contenedor Java. PostgreSQL conserva los datos en un volumen. Flyway crea el proyecto inicial, la escena portable, las entidades relacionales y los historiales de eventos y recorridos. La interfaz muestra “API y PostgreSQL conectados” cuando puede consultar el proyecto.
 
 Los valores predeterminados son exclusivamente de desarrollo local. Personaliza `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT` y `WEB_PORT` en `.env`. No lo subas a Git. Compose conecta automáticamente el backend a PostgreSQL. Cambiar la contraseña en `.env` no modifica un rol de un volumen PostgreSQL ya inicializado.
 
@@ -122,7 +124,7 @@ Con PostgreSQL iniciado, `cd backend && mvn verify` ejecuta pruebas HTTP de migr
 En `frontend`:
 
 ```bash
-node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts tests/runtime.test.ts tests/models.test.ts
+node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts tests/runtime.test.ts tests/models.test.ts tests/traceroute.test.ts tests/design.test.ts
 npm run build:local
 # Con Vite local y backend iniciados:
 npx playwright test
@@ -178,6 +180,8 @@ Ejemplo de rutas y servicios dentro de la configuración de un router (conserva 
 }
 ```
 
+Los formularios **Gateway y rutas estáticas**, **Reglas de firewall** y **Servidor DHCP** permiten administrar estos servicios sin editar JSON. El orden de las reglas se cambia con ↑.
+
 **Solicitar DHCP** asigna una dirección libre de un servidor alcanzable; no inventa una concesión si el equipo está desconectado. Firewall evalúa la primera regla coincidente y permite por defecto. `*` representa cualquier dirección. Las rutas se eligen por el prefijo más específico; se exige también conectividad de retorno. Los puertos access reciben tramas sin etiqueta y asignan su VLAN; los trunks transportan las VLAN entre switches. No hay negociación automática del trunk.
 
 CLI interpretada en **Java en la edición local** y **TypeScript en Pages**. No ejecuta comandos del sistema. Usa `?`, Tab e historial con ↑/↓. Ejemplo para interrumpir el enlace de PC desde el switch:
@@ -201,16 +205,16 @@ Cada ping exitoso representa 32 bytes de solicitud y 32 de respuesta. Las gráfi
 
 Agrega una Cámara IP y conéctala a un puerto libre del switch. **Vista de cámara virtual** sitúa la cámara del render en su ubicación; **Simular movimiento** genera un evento educativo si tiene conectividad con el router. Apagarla cierra la vista. No hay vídeo real. Una Bombilla IoT conectada permite alternar la iluminación; si se desconecta, la operación se rechaza.
 
-## Alcance y pendientes explícitos
+## Alcance educativo
 
-Esta entrega amplía las fases 2–6 y añade pruebas y documentación de la fase 7. **No equivale a completar todos los requisitos del prompt maestro.**
+La demostración incluye los diez criterios de aceptación: explorar la casa, añadir/mover equipos, conectar interfaces, sincronizar la topología, simular conectividad y fallos, usar CLI y guardar/cargar. Las funciones de red son modelos educativos deterministas; no ejecutan tráfico en la red física.
 
-- El motor modela ICMP, reenvío, VLAN, DHCP básico y reglas por IP. `traceroute` muestra el recorrido lógico incluyendo switches, sin sondas TTL ni tiempos de red.
-- `nat=true` demuestra traducción de dirección de origen en ICMP y su efecto en reglas posteriores. El panel de sesiones añade PAT TCP/UDP, respuestas asociadas y caducidad virtual; no implementa un firewall con estado ni la máquina de estados completa de TCP.
-- DHCP asigna direcciones deterministas sin negociación de broadcast ni expiración de concesiones. No hay servicios de aplicación DNS/HTTP. Las tablas ARP/MAC aprendidas se consultan en el panel y la CLI.
-- La topología es un SVG interactivo sincronizado, sin editor React Flow. Se admiten modelos GLB/GLTF autocontenidos dentro de los límites descritos más abajo.
-- Se guarda un proyecto completo como escena JSON en PostgreSQL; faltan CRUD individual de habitaciones/dispositivos y tablas relacionales independientes para cada entidad del dominio. La gestión de múltiples proyectos ya está disponible.
-- Los paneles laterales se redimensionan y ocultan; los apartados inferiores se contraen. La posición libre de la cámara no se persiste. El paquete Three.js/Recharts sigue siendo grande y Vite avisa durante la compilación.
+- Traceroute envía sondas con TTL creciente (1–30). Los routers y firewalls consumen TTL al reenviar; los switches y AP no. Las respuestas ICMP también requieren ruta de retorno. Los tiempos son latencias virtuales deterministas, no mediciones.
+- NAT/PAT mantiene traducciones TCP/UDP, respuestas asociadas y caducidad. No reproduce negociación TCP, retransmisiones ni un firewall con inspección completa de protocolos.
+- DHCP asigna IP de un pool alcanzable y evita direcciones ocupadas; no reproduce cada paquete de negociación ni la renovación de concesiones. Las tablas ARP/MAC se aprenden a partir de recorridos validados, sin emular STP o cada trama broadcast.
+- La casa usa nueve espacios definidos, con nombres editables. Se pueden retirar espacios vacíos y volver a crearlos. Los modelos y materiales son originales generados por código; no es una reconstrucción fotorrealista exacta de la referencia.
+- GLB/GLTF mantiene los límites de tamaño y formatos descritos al final. Se priorizan escenas moderadas (hasta 100 equipos); el modo equilibrado reduce la resolución del render. El núcleo Three.js sigue superando 500 kB y Vite avisa, aunque gráficos, topología y render se distribuyen en paquetes separados.
+- La edición local es para uso de desarrollo individual, sin autenticación multiusuario. La simulación se ejecuta bajo demanda; una secuencia continua necesita el navegador abierto y se detiene automáticamente a los 300 ciclos.
 
 ## Verificación de esta entrega
 
@@ -254,3 +258,43 @@ Los modelos se conservan con **Guardar proyecto**, `write memory` y la exportaci
 Límites: 2 MiB por archivo, 8 modelos diferentes, 20 equipos personalizados y 8 MiB de datos base64 en la biblioteca; el proyecto JSON importado puede tener hasta 10 MiB. Se admiten geometría estática, materiales PBR básicos, texturas PNG/JPEG embebidas y extensiones `KHR_materials_unlit`/`KHR_materials_emissive_strength`. No se admiten recursos por URL, Draco, Meshopt, BasisU ni reproducción de animaciones. Se limita la complejidad de las mallas y se liberan geometrías, materiales y texturas al reemplazar o descargar los modelos.
 
 Los fixtures originales `triangle.gltf` y `triangle.glb` son geometrías generadas por el proyecto para las pruebas. Las pruebas verifican persistencia, rechazo de URLs externas, jerarquías inválidas, puertos PAT distintos, respuestas incorrectas, caducidad y paridad Java/TypeScript mediante `runtime-cases.json` y `pat-return-cases.json`. Estos últimos comprueban que el firewall externo recibe el destino público y que el firewall interno puede bloquear el origen remoto después de la traducción inversa.
+
+## Editor de topología, habitaciones y cámara
+
+**Abrir editor de topología** muestra React Flow con zoom, desplazamiento y minimapa. Arrastra nodos para organizar el diagrama; sus posiciones se guardan por proyecto. Conecta el puerto de salida de un nodo al puerto de entrada libre de otro, seleccionando Ethernet, Wi-Fi o Fibra. Las conexiones ocupadas, incompatibles o inválidas se rechazan. Seleccionar un nodo selecciona también el equipo en la casa; **Enfocar equipo en casa** mueve la cámara. Selecciona un cable y pulsa **Eliminar enlace seleccionado** para desconectarlo.
+
+**Editar habitaciones** permite crear, renombrar y eliminar espacios de la planta. Eliminar una habitación ocupada se rechaza; primero mueve o elimina sus equipos. El arrastre 3D solo permite los espacios activos.
+
+La barra de la casa permite ocultar conexiones, enfocar el equipo y elegir **Alta · 2×** o **Equilibrada · 1×**. Al guardar se conserva la cámara libre, incluso después de orbitar o desplazarla. Las vistas predefinidas restablecen su encuadre. El laboratorio inferior se puede redimensionar verticalmente.
+
+## Traceroute y ejecución continua
+
+El botón **Traceroute virtual** y `traceroute IP` muestran TTL, dirección que responde, ICMP Time Exceeded, destino alcanzado, errores y tiempos virtuales. Las sondas intermedias sin retorno muestran `*`; un router sin respuesta no impide por sí mismo recibir respuestas de los siguientes saltos.
+
+**Ejecutar simulación** genera un ping por ciclo con el equipo seleccionado como origen y el destino indicado en la barra. Cada ciclo lee la configuración actual: desconectar un cable produce eventos fallidos. **Pausar simulación** detiene nuevos ciclos. En local, la API calcula los resultados y publica eventos WebSocket; Pages usa el motor TypeScript. No se generan resultados aleatorios.
+
+## API de entidades y almacenamiento relacional
+
+Las siguientes rutas se aplican al proyecto guardado. Tras modificarlas desde otra herramienta, pulsa **Cargar proyecto** para recuperar sus cambios en la interfaz. La interfaz conserva su edición en memoria hasta Guardar.
+
+| Recurso bajo `/api/projects/{id}` | Operaciones |
+| --- | --- |
+| `/rooms`, `/devices`, `/links` | GET lista y POST crea |
+| `/rooms/{room}`, `/devices/{device}`, `/links/{link}` | GET, PUT y DELETE |
+| `/devices/{device}/interfaces` | GET interfaces |
+| `/devices/{device}/interfaces/{port}` | PUT configura interfaz |
+| `/devices/{device}/configuration` | GET y PUT rutas, firewall, DHCP, NAT y configuración completa |
+| `/topology` | GET red guardada |
+| `/inventory` | GET proyección relacional de la red |
+| `/simulation` | GET estado de ejecución |
+| `/simulation/start` | POST `{network, source, target}` |
+| `/simulation/step` | POST `{network}`; avanza un segundo virtual y ejecuta una prueba |
+| `/simulation/pause` | POST pausa |
+
+`POST /api/simulation/traceroute?maxTtl=30` acepta el mismo cuerpo que ping. `GET /api/simulation/traces?projectId=UUID` devuelve los últimos 100 recorridos persistidos, con saltos y sondas TTL. Los errores usan Problem Details y la validación enumera los campos inválidos.
+
+Flyway **V5** incorpora `project_room`, `network_device`, `network_interface`, `network_link`, `network_vlan`, `network_subnet`, `static_route`, `firewall_rule` y `dhcp_pool`. V6 incorpora `packet_trace`. La escena JSON portable y su proyección relacional se actualizan en una sola transacción con bloqueo del proyecto; una operación inválida revierte por completo. El arranque actualiza la proyección de los proyectos antiguos sin borrar sus escenas ni modelos. Las claves foráneas eliminan enlaces/interfaces dependientes al borrar equipos; borrar una habitación ocupada se rechaza antes de persistir.
+
+Pruebas nuevas: `EntityApiTest`, `TracerouteTest`, `SimulationSessionTest`, `design.test.ts`, `traceroute.test.ts` y `design-editor.spec.ts`. Los escenarios TTL se comparten entre Java y TypeScript en `traceroute-cases.json`.
+
+Verificación de esta entrega: 20 pruebas Java, 18 pruebas TypeScript, 14 pruebas de navegador local y 8 de Pages aprobadas. También se comprobaron OpenAPI, compilaciones de ambas ediciones y arranque de Docker con PostgreSQL. La captura del README procede de la aplicación ejecutándose en Chromium.

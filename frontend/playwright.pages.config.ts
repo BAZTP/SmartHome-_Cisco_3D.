@@ -8,6 +8,7 @@ export default defineConfig({
     "**/projects.spec.ts",
     "**/projects-migration.spec.ts",
     "**/runtime-models.spec.ts",
+    "**/design-editor.spec.ts",
   ],
   outputDir: "test-results/pages",
   use: {

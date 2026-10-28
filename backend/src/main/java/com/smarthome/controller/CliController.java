@@ -156,16 +156,19 @@ public class CliController {
       } else if (text.equals("show ip route")) output = config.path("routes").toPrettyString();
       else if ((parts[0].equals("ping") || parts[0].equals("traceroute")) && parts.length == 2) {
         var r =
-            runtime
-                .perform(
-                    req.network(),
-                    req.projectId(),
-                    new com.smarthome.service.RuntimeService.Action(
-                        "probe", d.id(), parts[1], null, null, null, null, null))
-                .result();
+            parts[0].equals("traceroute")
+                ? simulator.traceroute(
+                    new SimulationController.Request(req.network(), d.id(), parts[1]), 30)
+                : runtime
+                    .perform(
+                        req.network(),
+                        req.projectId(),
+                        new com.smarthome.service.RuntimeService.Action(
+                            "probe", d.id(), parts[1], null, null, null, null, null))
+                    .result();
         trace = r;
         events.record(req.projectId(), d.id(), parts[1], r);
-        output = r.message() + "\n" + String.join(" → ", r.path());
+        output = simulator.formatTrace(r) + "\n" + String.join(" → ", r.path());
       } else if (text.equals("write memory") && mode.equals("PRIVILEGIADO")) {
         save = true;
         output = "Configuración preparada para guardar";

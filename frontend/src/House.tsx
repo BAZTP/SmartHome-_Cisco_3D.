@@ -1,3 +1,5 @@
+import { useDesign, roomNames } from "./design";
+import InteriorDetails from "./InteriorDetails";
 import { Raycaster, Vector2, Plane, Vector3 } from "three";
 import { kinds } from "./network";
 import { Canvas, useThree } from "@react-three/fiber";
@@ -9,17 +11,7 @@ import { useNetwork } from "./network";
 import NetworkScene from "./NetworkScene";
 import Furniture from "./Furniture";
 import { useScene } from "./store";
-export const rooms = [
-  "Sala",
-  "Comedor",
-  "Cocina",
-  "Dormitorio principal",
-  "Dormitorio secundario",
-  "Oficina",
-  "Garaje",
-  "Jardín",
-  "Telecomunicaciones",
-];
+export const rooms = roomNames;
 function DropPlacement() {
   const { gl, camera } = useThree();
   useEffect(() => {
@@ -47,6 +39,7 @@ function DropPlacement() {
       let room = 0,
         best = Infinity;
       layout.forEach(([x, z], i) => {
+        if (!useDesign.getState().rooms.some((r) => r.id === i)) return;
         const d = (x - point.x) ** 2 + (z - point.z) ** 2;
         if (d < best) {
           best = d;
@@ -73,9 +66,15 @@ function DropPlacement() {
 }
 function Scene() {
   const { view, walls, selected, select } = useScene();
+  const {
+    rooms: activeRooms,
+    cameraRevision,
+    focusRevision,
+    quality,
+  } = useDesign();
   const { cameraId, devices, dragging } = useNetwork();
   const cameraDevice = devices.find((d) => d.id === cameraId && d.on);
-  const { camera, size } = useThree();
+  const { camera } = useThree();
   const controls = useRef<Controls>(null);
   useEffect(() => {
     camera.position.set(
@@ -85,8 +84,13 @@ function Scene() {
           ? [0, 2.8, 7]
           : [0, 16, 14]) as [number, number, number]),
     );
-    if (size.width / size.height < 1.2) camera.position.multiplyScalar(1.25);
+
     controls.current?.target.set(0, 0, 0);
+    const pose = useDesign.getState().camera;
+    if (pose) {
+      camera.position.set(...pose.position);
+      controls.current?.target.set(...pose.target);
+    }
     const device = cameraDevice;
     if (device) {
       const [x, z] = layout[device.room];
@@ -94,7 +98,23 @@ function Scene() {
       controls.current?.target.set(x, 0.5, z - 2);
     }
     controls.current?.update();
-  }, [view, camera, size.width, size.height, cameraId, cameraDevice]);
+  }, [view, camera, cameraRevision, cameraId, cameraDevice]);
+  useEffect(() => {
+    const focus = useDesign.getState().focus;
+    const d = useNetwork.getState().devices.find((d) => d.id === focus);
+    if (!d || !controls.current) return;
+    useNetwork.setState({ cameraId: null });
+    const [x, z] = layout[d.room];
+    camera.position.set(x + d.x + 3, 4, z + d.z + 4);
+    controls.current.target.set(x + d.x, 0.8, z + d.z);
+    controls.current.update();
+    useDesign.setState({
+      camera: {
+        position: camera.position.toArray() as [number, number, number],
+        target: controls.current.target.toArray() as [number, number, number],
+      },
+    });
+  }, [focusRevision, camera]);
   return (
     <>
       <color attach="background" args={["#0a1422"]} />
@@ -109,7 +129,7 @@ function Scene() {
         intensity={2.2}
         color="#ffdfb1"
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={quality === "high" ? [2048, 2048] : [1024, 1024]}
       />
       <hemisphereLight args={["#9cbdd3", "#303721", 0.8]} />
       <DropPlacement />
@@ -124,7 +144,7 @@ function Scene() {
         far={5}
         resolution={1024}
       />
-      {rooms.map((room, i) => {
+      {activeRooms.map(({ name: room, id: i }) => {
         const [x, z] = layout[i];
         return (
           <group key={room} position={[x, 0, z]}>
@@ -135,6 +155,7 @@ function Scene() {
             />
             {walls && i !== 7 && <Walls />}
             <Furniture room={i} />
+            <InteriorDetails room={i} walls={walls} />
             <pointLight
               position={[0, 2, 0]}
               color="#ffcf8b"
@@ -154,6 +175,19 @@ function Scene() {
       })}
       <NetworkScene />
       <OrbitControls
+        onEnd={() => {
+          if (cameraId || !controls.current) return;
+          useDesign.setState({
+            camera: {
+              position: camera.position.toArray() as [number, number, number],
+              target: controls.current.target.toArray() as [
+                number,
+                number,
+                number,
+              ],
+            },
+          });
+        }}
         enabled={!dragging && !cameraId}
         ref={controls}
         makeDefault
@@ -165,11 +199,12 @@ function Scene() {
   );
 }
 export default function House() {
+  const quality = useDesign((s) => s.quality);
   return (
     <Canvas
       shadows
       camera={{ position: [0, 16, 14], fov: 48 }}
-      dpr={[1, 2]}
+      dpr={quality === "high" ? [1, 2] : [1, 1]}
       gl={{ antialias: true }}
     >
       <Scene />

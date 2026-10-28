@@ -18,15 +18,19 @@ Abre http://localhost:8088. Para desarrollar con recarga: PostgreSQL en Compose,
 - `cli.ts` / `CliController.java`: modos y comandos; la respuesta incluye la nueva red. `save=true` pide al cliente guardar mediante el adaptador de persistencia.
 - `AdvancedPanel.tsx`: configuración de interfaces y JSON; DHCP.
 - `NetworkScene.tsx`, `DeviceModel.tsx`, `House.tsx`: dispositivos, arrastre, cables, paquetes y cámara virtual.
-- `Telemetry.tsx`: topología SVG sincronizada, pasos, gráficas, CSV e IoT.
+- `Topology.tsx`: editor React Flow sincronizado, puertos, enlaces y posiciones persistidas. `Telemetry.tsx`: pasos, gráficas, CSV e IoT.
 - `EventService` / `EventSocket`: eventos persistidos y WebSocket. Nginx y Vite redirigen `/ws`.
 - `projectStorage.ts`: IndexedDB v2 para Pages y REST para local, con metadatos y escenas por UUID. Conserva la migración desde v1. `ProjectManager.tsx` gestiona múltiples proyectos; el guardado CLI usa el UUID activo. Escena v1 admite configuraciones opcionales y escenas antiguas.
 - Los eventos llevan `projectId`; consultas REST y gráficos se filtran por proyecto. WebSocket emite ID estable para fusionar historial y eventos sin duplicados.
-- Flyway V1–V4: proyectos, escena JSON y eventos asociados a cada proyecto. Añade migraciones; no cambies las aplicadas.
+- Flyway V1–V6: proyectos, escena JSON, entidades relacionales, eventos y trazas asociadas a cada proyecto. Añade migraciones; no cambies las aplicadas.
 
-## Pendientes prioritarios
+## Alcance y mantenimiento
 
-El README detalla lo que no está implementado. Para completar el prompt maestro: traceroute con TTL, editor visual de reglas y rutas, dominio relacional detallado, más formatos/extensiones GLTF, editor de topología más completo y optimización del paquete gráfico. El PAT educativo mantiene tuplas y caducidad; no implementa el protocolo TCP completo. No presentes el recorrido lógico como traceroute con TTL.
+El README describe las simplificaciones educativas. Traceroute ahora usa TTL y verifica retorno, con tiempos virtuales deterministas. Conserva la paridad Java/TypeScript mediante `traceroute-cases.json`. PAT no implementa la máquina de estados completa de TCP y DHCP no simula cada broadcast. Las nueve posiciones de habitaciones mantienen la geometría y los límites de Wi-Fi consistentes entre motores.
+
+`DesignDto` / `design.ts` preservan habitaciones, posiciones de React Flow, cámara y calidad; incluye este campo al exportar, guardar o ejecutar `write memory`. `NetworkEntityService` usa un bloqueo de proyecto y validación completa antes de actualizar escena y `NetworkInventory`. No escribas directamente en las tablas de proyección: romperías la sincronización. `InventoryBackfill` regenera la proyección al arrancar para conservar proyectos anteriores.
+
+`SimulationSessionService` controla inicio/pausa/pasos; cada paso recibe la red actual del navegador. No crea un hilo de tráfico indefinido cuando se cierra el cliente. `EventService` persiste el resultado y publica WebSocket después de confirmar la transacción. `ServicesEditor.tsx` ofrece formularios de rutas, firewall y DHCP.
 
 ## Verificar antes de publicar
 
@@ -34,7 +38,7 @@ El README detalla lo que no está implementado. Para completar el prompt maestro
 cd backend
 mvn verify
 cd ../frontend
-node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts tests/runtime.test.ts tests/models.test.ts
+node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts tests/runtime.test.ts tests/models.test.ts tests/traceroute.test.ts tests/design.test.ts
 npm run build:local
 # Con API y Vite activos:
 npx playwright test --workers=1

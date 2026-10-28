@@ -3,6 +3,7 @@ import {
   validateConfig,
   simulate,
   type Config,
+  type Trace,
 } from "./advanced.ts";
 import { create } from "zustand";
 export type Device = {
@@ -215,7 +216,7 @@ export const useNetwork = create<
     playing: boolean;
     cameraId: string | null;
     dragging: boolean;
-    record: (r: { ok: boolean; message: string; path: string[] }) => void;
+    record: (r: Trace) => void;
     setNetwork: (n: Network) => void;
     select: (id: string) => void;
     update: (id: string, p: Partial<Device>) => void;
@@ -250,7 +251,11 @@ export const useNetwork = create<
           time: new Date().toISOString(),
           ok: r.ok,
           message: r.message,
-          bytes: r.ok ? 64 : 0,
+          bytes: r.probes?.length
+            ? r.probes.filter((p) => p.delayMs !== null).length * 64
+            : r.ok
+              ? 64
+              : 0,
         },
       ],
     })),

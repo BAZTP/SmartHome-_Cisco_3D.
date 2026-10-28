@@ -1,4 +1,5 @@
-import { browserEdition } from "./projectStorage";
+import ServicesEditor from "./ServicesEditor";
+import { browserEdition, getActiveProjectId } from "./projectStorage";
 import { useEffect, useState } from "react";
 import {
   configuration,
@@ -128,6 +129,7 @@ export default function AdvancedPanel() {
                 NAT/PAT de salida (simulado)
               </label>
             )}
+          <ServicesEditor key={d.id} device={d} />
           <textarea
             aria-label="Configuración de red"
             rows={14}
@@ -154,6 +156,7 @@ export default function AdvancedPanel() {
           </button>
           <button
             onClick={async () => {
+              const projectId = getActiveProjectId();
               try {
                 let lease;
                 if (browserEdition) lease = dhcpLease(n, d.id);
@@ -170,6 +173,7 @@ export default function AdvancedPanel() {
                     throw Error("Sin servidor DHCP alcanzable o pool agotado");
                   lease = await response.json();
                 }
+                if (projectId !== getActiveProjectId()) return;
                 n.update(d.id, lease);
                 E("Dirección DHCP asignada");
               } catch (e) {

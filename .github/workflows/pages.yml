@@ -20,7 +20,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: frontend
-      - run: node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts tests/runtime.test.ts tests/models.test.ts
+      - run: node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts tests/runtime.test.ts tests/models.test.ts tests/traceroute.test.ts tests/design.test.ts
         working-directory: frontend
       - run: npm run build:pages
         working-directory: frontend

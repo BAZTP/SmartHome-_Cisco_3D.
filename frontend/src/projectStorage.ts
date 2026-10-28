@@ -1,8 +1,10 @@
+import { validateDesign, type Design } from "./design";
 import { validateModels, type ModelLibrary } from "./models";
 import { validateNetwork, type Network } from "./network";
 import type { View } from "./store";
 export type SceneSnapshot = {
   version: 1;
+  design?: Design;
   models?: ModelLibrary;
   network?: Network;
   view: View;
@@ -50,6 +52,9 @@ export function validateScene(value: unknown): SceneSnapshot {
     throw Error("Formato de escena incompatible");
   return {
     version: 1,
+    ...(s.design
+      ? { design: validateDesign(s.design, s.network as Network | undefined) }
+      : {}),
     ...(s.models
       ? {
           models: validateModels(
