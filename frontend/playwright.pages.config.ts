@@ -7,6 +7,7 @@ export default defineConfig({
     "**/pages.spec.ts",
     "**/projects.spec.ts",
     "**/projects-migration.spec.ts",
+    "**/runtime-models.spec.ts",
   ],
   outputDir: "test-results/pages",
   use: {

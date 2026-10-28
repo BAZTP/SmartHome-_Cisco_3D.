@@ -26,7 +26,7 @@ Abre http://localhost:8088. Para desarrollar con recarga: PostgreSQL en Compose,
 
 ## Pendientes prioritarios
 
-El README detalla lo que no está implementado. Para completar el prompt maestro: tablas ARP/MAC, PAT por sesiones, traceroute con TTL, editor visual de reglas y rutas, dominio relacional detallado, importación GLTF, editor de topología más completo y optimización del paquete gráfico. No presentes el NAT ICMP o el recorrido lógico como una implementación completa de PAT/traceroute.
+El README detalla lo que no está implementado. Para completar el prompt maestro: traceroute con TTL, editor visual de reglas y rutas, dominio relacional detallado, más formatos/extensiones GLTF, editor de topología más completo y optimización del paquete gráfico. El PAT educativo mantiene tuplas y caducidad; no implementa el protocolo TCP completo. No presentes el recorrido lógico como traceroute con TTL.
 
 ## Verificar antes de publicar
 
@@ -34,7 +34,7 @@ El README detalla lo que no está implementado. Para completar el prompt maestro
 cd backend
 mvn verify
 cd ../frontend
-node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts
+node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts tests/runtime.test.ts tests/models.test.ts
 npm run build:local
 # Con API y Vite activos:
 npx playwright test --workers=1
@@ -46,3 +46,9 @@ npx playwright test --config playwright.pages.config.ts
 La configuración usa Chromium de `/usr/bin/chromium`; adapta la ruta en otros sistemas. Para verificar Nginx, ejecuta Playwright con `PLAYWRIGHT_BASE_URL=http://127.0.0.1:8088` tras construir Compose. Las pruebas escriben la escena de demostración: usa una base de desarrollo.
 
 No introduzcas secretos, tráfico físico ni comandos del anfitrión. Conserva los mensajes visibles de error y la exportación/importación JSON. El workflow de Pages publica `main`; Settings → Pages debe utilizar GitHub Actions.
+
+## Nuevos módulos
+
+`runtime.ts` y `RuntimeService.java` mantienen aprendizaje ARP/MAC y sesiones PAT con reloj virtual. `RuntimeController` expone acciones y publica resultados al monitoreo. `RuntimePanel.tsx` permite consultar tablas y probar respuestas y caducidad. Los cambios de configuración invalidan el contexto; no persistir estas tablas como configuración.
+
+`models.ts` y `ModelLibrary.java` validan la biblioteca autocontenida del proyecto. `ImportedModel.tsx` carga con GLTFLoader y libera recursos gráficos; `ModelPanel.tsx` importa y asigna modelos. La biblioteca está en `SceneSnapshot.models`, separada de la red para evitar enviarla con cada simulación. Conserva este campo en guardado, carga, CLI y cambios de proyecto. No relajes la restricción de recursos externos sin diseñar un mecanismo explícito de importación.

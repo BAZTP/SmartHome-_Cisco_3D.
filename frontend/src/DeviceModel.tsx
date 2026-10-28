@@ -1,3 +1,5 @@
+import ImportedModel from "./ImportedModel";
+import { useModels } from "./models";
 import type { Device } from "./network";
 import { configuration } from "./advanced";
 /** Original procedural educational models. No proprietary assets. */
@@ -8,6 +10,9 @@ export default function DeviceModel({
   device: Device;
   selected: boolean;
 }) {
+  const models = useModels();
+  const custom = models.assets[models.devices[d.id]];
+  if (custom) return <ImportedModel asset={custom} />;
   const body = selected ? "#30a8bc" : "#314650",
     screen = d.on ? "#268ac2" : "#101a25";
   const box = (

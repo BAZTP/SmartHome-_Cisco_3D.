@@ -36,6 +36,7 @@ public class CliController {
       boolean save,
       SimulationController.Result trace) {}
 
+  private final com.smarthome.service.RuntimeService runtime;
   private final ObjectMapper mapper;
   private final Validator validator;
   private final NetworkSimulator simulator;
@@ -47,12 +48,14 @@ public class CliController {
       Validator v,
       NetworkSimulator s,
       com.smarthome.service.DhcpService dhcp,
-      com.smarthome.service.EventService events) {
+      com.smarthome.service.EventService events,
+      com.smarthome.service.RuntimeService runtime) {
     mapper = m;
     validator = v;
     simulator = s;
     this.dhcp = dhcp;
     this.events = events;
+    this.runtime = runtime;
   }
 
   private int prefix(String s) {
@@ -101,7 +104,8 @@ public class CliController {
             "enable; disable; configure terminal; end; exit; hostname; interface ethN; description;"
                 + " ip address; shutdown; no shutdown; show interfaces; show ip interface brief;"
                 + " show running-config; show ip route; show vlan brief; vlan; switchport mode"
-                + " access|trunk; switchport access vlan; ip route; ping; traceroute; write memory";
+                + " access|trunk; switchport access vlan; ip route; ping; traceroute; write memory;"
+                + " show arp; show mac address-table; show ip nat translations";
       else if (text.equals("enable") && mode.equals("EXEC")) mode = "PRIVILEGIADO";
       else if (text.equals("disable")) mode = "EXEC";
       else if (text.equals("configure terminal") && mode.equals("PRIVILEGIADO")) mode = "CONFIG";
@@ -109,7 +113,25 @@ public class CliController {
       else if (text.equals("exit"))
         mode =
             mode.equals("INTERFACE") ? "CONFIG" : mode.equals("CONFIG") ? "PRIVILEGIADO" : "EXEC";
-      else if (text.equals("show running-config")) output = config.toPrettyString();
+      else if (text.equals("show arp")
+          || text.equals("show mac address-table")
+          || text.equals("show ip nat translations")) {
+        var tables =
+            runtime
+                .perform(
+                    req.network(),
+                    req.projectId(),
+                    new com.smarthome.service.RuntimeService.Action(
+                        "inspect", null, null, null, null, null, null, null))
+                .tables();
+        output =
+            mapper.writeValueAsString(
+                text.equals("show arp")
+                    ? tables.arp().stream().filter(e -> e.device().equals(d.id())).toList()
+                    : text.equals("show mac address-table")
+                        ? tables.mac().stream().filter(e -> e.device().equals(d.id())).toList()
+                        : tables.pat().stream().filter(e -> e.device().equals(d.id())).toList());
+      } else if (text.equals("show running-config")) output = config.toPrettyString();
       else if (text.equals("show interfaces")
           || text.equals("show ip interface brief")
           || text.equals("show vlan brief")) {
@@ -133,7 +155,14 @@ public class CliController {
         output = String.join("\n", lines);
       } else if (text.equals("show ip route")) output = config.path("routes").toPrettyString();
       else if ((parts[0].equals("ping") || parts[0].equals("traceroute")) && parts.length == 2) {
-        var r = simulator.ping(new SimulationController.Request(req.network(), d.id(), parts[1]));
+        var r =
+            runtime
+                .perform(
+                    req.network(),
+                    req.projectId(),
+                    new com.smarthome.service.RuntimeService.Action(
+                        "probe", d.id(), parts[1], null, null, null, null, null))
+                .result();
         trace = r;
         events.record(req.projectId(), d.id(), parts[1], r);
         output = r.message() + "\n" + String.join(" → ", r.path());

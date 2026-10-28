@@ -37,7 +37,8 @@ export default function ProjectManager({
     [id, setId] = useState(getActiveProjectId()),
     [name, setName] = useState(""),
     [message, setMessage] = useState("");
-  const baseline = useRef(JSON.stringify(snapshot()));
+  const baseline = useRef<string | null>(null);
+  if (baseline.current === null) baseline.current = JSON.stringify(snapshot());
   const saveChanges = async () => {
     const current = snapshot();
     if (JSON.stringify(current) !== baseline.current)

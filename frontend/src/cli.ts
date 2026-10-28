@@ -1,3 +1,4 @@
+import { runtime } from "./runtime.ts";
 import { configuration, dhcpLease } from "./advanced.ts";
 import { type Network, validateNetwork, ipv4, ping } from "./network.ts";
 export type Context = {
@@ -5,6 +6,9 @@ export type Context = {
   port: number;
 };
 export const commands = [
+  "show arp",
+  "show mac address-table",
+  "show ip nat translations",
   "enable",
   "disable",
   "configure terminal",
@@ -36,6 +40,7 @@ export function execute(
   id: string,
   context: Context,
   command: string,
+  scope = "session",
 ) {
   const n = structuredClone(network),
     d = n.devices.find((v) => v.id === id);
@@ -83,6 +88,22 @@ export function execute(
         : ctx.mode === "CONFIG"
           ? "PRIVILEGIADO"
           : "EXEC";
+  } else if (
+    ["show arp", "show mac address-table", "show ip nat translations"].includes(
+      text,
+    )
+  ) {
+    const tables = runtime(n, scope, { action: "inspect" }).tables;
+    output = JSON.stringify(
+      (text === "show arp"
+        ? tables.arp
+        : text === "show mac address-table"
+          ? tables.mac
+          : tables.pat
+      ).filter((e) => e.device === id),
+      null,
+      2,
+    );
   } else if (text === "show running-config")
     output = JSON.stringify(c, null, 2);
   else if (text === "show ip interface brief" || text === "show interfaces")
@@ -105,7 +126,11 @@ export function execute(
     (parts[0] === "ping" || parts[0] === "traceroute") &&
     parts.length === 2
   ) {
-    const result = ping(n, id, parts[1]);
+    const result = runtime(n, scope, {
+      action: "probe",
+      source: id,
+      target: parts[1],
+    }).result!;
     trace = result;
     output =
       result.message +

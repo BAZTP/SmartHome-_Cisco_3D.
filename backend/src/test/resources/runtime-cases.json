@@ -1,0 +1,319 @@
+{
+  "network": {
+    "devices": [
+      {
+        "id": "Router",
+        "kind": "Router ISR 4321",
+        "name": "Router",
+        "room": 8,
+        "ip": "192.168.1.1",
+        "x": -0.9,
+        "z": 1,
+        "rotation": 0,
+        "prefix": 24,
+        "on": true,
+        "config": {
+          "interfaces": [
+            {
+              "enabled": true,
+              "description": "",
+              "mode": "access",
+              "vlan": 1,
+              "ip": "192.168.1.1",
+              "prefix": 24
+            },
+            {
+              "enabled": true,
+              "description": "",
+              "mode": "access",
+              "vlan": 1,
+              "ip": "192.168.254.2",
+              "prefix": 24
+            },
+            {
+              "enabled": true,
+              "description": "",
+              "mode": "access",
+              "vlan": 1,
+              "ip": "",
+              "prefix": 24
+            },
+            {
+              "enabled": true,
+              "description": "",
+              "mode": "access",
+              "vlan": 1,
+              "ip": "",
+              "prefix": 24
+            }
+          ],
+          "gateway": "",
+          "routes": [
+            {
+              "network": "0.0.0.0",
+              "prefix": 0,
+              "gateway": "192.168.254.1"
+            }
+          ],
+          "firewall": [],
+          "dhcp": null,
+          "nat": false,
+          "light": false
+        }
+      },
+      {
+        "id": "Switch",
+        "kind": "Switch 2960",
+        "name": "Switch",
+        "room": 8,
+        "ip": "192.168.1.2",
+        "x": 0.9,
+        "z": 1,
+        "rotation": 0,
+        "prefix": 24,
+        "on": true
+      },
+      {
+        "id": "PC",
+        "kind": "PC",
+        "name": "PC",
+        "room": 0,
+        "ip": "192.168.1.101",
+        "x": 0,
+        "z": 1,
+        "rotation": 0,
+        "prefix": 24,
+        "on": true
+      },
+      {
+        "id": "Laptop",
+        "kind": "Laptop",
+        "name": "Laptop",
+        "room": 5,
+        "ip": "192.168.1.102",
+        "x": 0,
+        "z": 1,
+        "rotation": 0,
+        "prefix": 24,
+        "on": true
+      },
+      {
+        "id": "ASA",
+        "kind": "Firewall ASA",
+        "name": "ASA",
+        "room": 8,
+        "ip": "192.168.254.1",
+        "x": 0,
+        "z": -1,
+        "rotation": 0,
+        "prefix": 24,
+        "on": true,
+        "config": {
+          "interfaces": [
+            {
+              "enabled": true,
+              "description": "",
+              "mode": "access",
+              "vlan": 1,
+              "ip": "192.168.254.1",
+              "prefix": 24
+            },
+            {
+              "enabled": true,
+              "description": "",
+              "mode": "access",
+              "vlan": 1,
+              "ip": "203.0.113.2",
+              "prefix": 24
+            }
+          ],
+          "gateway": "",
+          "routes": [
+            {
+              "network": "192.168.1.0",
+              "prefix": 24,
+              "gateway": "192.168.254.2"
+            }
+          ],
+          "firewall": [],
+          "dhcp": null,
+          "nat": true,
+          "light": false
+        }
+      },
+      {
+        "id": "Internet",
+        "kind": "Internet",
+        "name": "Internet",
+        "room": 7,
+        "ip": "203.0.113.1",
+        "x": 0,
+        "z": 1,
+        "rotation": 0,
+        "prefix": 24,
+        "on": true,
+        "config": {
+          "interfaces": [
+            {
+              "enabled": true,
+              "description": "",
+              "mode": "access",
+              "vlan": 1,
+              "ip": "203.0.113.1",
+              "prefix": 24
+            }
+          ],
+          "gateway": "203.0.113.2",
+          "routes": [],
+          "firewall": [],
+          "dhcp": null,
+          "nat": false,
+          "light": false
+        }
+      }
+    ],
+    "links": [
+      {
+        "id": "rs",
+        "a": "Router",
+        "b": "Switch",
+        "ap": 0,
+        "bp": 0
+      },
+      {
+        "id": "sp",
+        "a": "Switch",
+        "b": "PC",
+        "ap": 1,
+        "bp": 0
+      },
+      {
+        "id": "sl",
+        "a": "Switch",
+        "b": "Laptop",
+        "ap": 2,
+        "bp": 0
+      },
+      {
+        "id": "ra",
+        "a": "Router",
+        "b": "ASA",
+        "ap": 1,
+        "bp": 0
+      },
+      {
+        "id": "ai",
+        "a": "ASA",
+        "b": "Internet",
+        "ap": 1,
+        "bp": 0
+      }
+    ]
+  },
+  "operations": [
+    {
+      "action": "probe",
+      "source": "PC",
+      "target": "192.168.1.102",
+      "ok": true,
+      "pat": 0
+    },
+    {
+      "action": "flow",
+      "source": "PC",
+      "target": "203.0.113.1",
+      "protocol": "UDP",
+      "sourcePort": 5000,
+      "targetPort": 53,
+      "ok": true,
+      "pat": 1
+    },
+    {
+      "action": "flow",
+      "source": "Laptop",
+      "target": "203.0.113.1",
+      "protocol": "UDP",
+      "sourcePort": 5000,
+      "targetPort": 53,
+      "ok": true,
+      "pat": 2
+    },
+    {
+      "action": "flow",
+      "source": "PC",
+      "target": "203.0.113.1",
+      "protocol": "UDP",
+      "sourcePort": 5000,
+      "targetPort": 53,
+      "ok": true,
+      "pat": 2
+    },
+    {
+      "action": "return",
+      "sessionId": "flow-1",
+      "source": "203.0.113.1",
+      "target": "203.0.113.2",
+      "protocol": "UDP",
+      "sourcePort": 53,
+      "targetPort": 40000,
+      "ok": true,
+      "pat": 2
+    },
+    {
+      "action": "return",
+      "sessionId": "flow-1",
+      "source": "203.0.113.1",
+      "target": "203.0.113.2",
+      "protocol": "UDP",
+      "sourcePort": 53,
+      "targetPort": 40001,
+      "ok": false,
+      "pat": 2
+    },
+    {
+      "action": "advance",
+      "seconds": 60,
+      "ok": null,
+      "pat": 0
+    },
+    {
+      "action": "return",
+      "sessionId": "flow-1",
+      "source": "203.0.113.1",
+      "target": "203.0.113.2",
+      "protocol": "UDP",
+      "sourcePort": 53,
+      "targetPort": 40000,
+      "ok": false,
+      "pat": 0
+    },
+    {
+      "action": "advance",
+      "seconds": 240,
+      "ok": null,
+      "pat": 0
+    },
+    {
+      "action": "flow",
+      "source": "PC",
+      "target": "203.0.113.1",
+      "protocol": "TCP",
+      "sourcePort": 5000,
+      "targetPort": 443,
+      "ok": true,
+      "pat": 1
+    },
+    {
+      "action": "advance",
+      "seconds": 299,
+      "ok": null,
+      "pat": 1
+    },
+    {
+      "action": "advance",
+      "seconds": 1,
+      "ok": null,
+      "pat": 0
+    }
+  ]
+}

@@ -101,7 +101,8 @@ Spring Boot no carga `.env` automáticamente fuera de Compose. Si personalizas l
 - `GET /api/projects/{id}/scene`: escena guardada; respuesta vacía si nunca se guardó.
 - `PUT /api/projects/{id}/scene`: reemplaza la escena validada, responde 204.
 - `GET /actuator/health`: disponibilidad del backend y PostgreSQL.
-- `POST /api/simulation/ping` y `/api/simulation/traceroute`: reciben `{network, source, target, projectId}` y devuelven `{ok, message, path}`.
+- `POST /api/simulation/ping` y `/api/simulation/traceroute`: reciben `{network, source, target, projectId}` y devuelven `{ok, message, path, hops}`.
+- `POST /api/simulation/runtime`: acciones `inspect`, `probe`, `flow`, `return`, `advance` y `clear`; recibe `network` y `projectId` y devuelve `result` y las tablas ARP/MAC/PAT.
 - `POST /api/simulation/dhcp`: recibe `{network, source}` y devuelve el dispositivo con su dirección asignada.
 - `POST /api/cli`: recibe `{network, source, context:{mode,port}, command, projectId}` y devuelve `{network,context,output,save,trace}`. Cuando `save=true`, el cliente guarda la escena mediante PUT.
 - `GET /api/simulation/events` y `/api/simulation/metrics`: últimos 100 eventos y acumulados persistidos. Ambos aceptan `?projectId=UUID`; si se omite, usan la demostración.
@@ -121,7 +122,7 @@ Con PostgreSQL iniciado, `cd backend && mvn verify` ejecuta pruebas HTTP de migr
 En `frontend`:
 
 ```bash
-node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts
+node --experimental-strip-types --test tests/network.test.ts tests/advanced.test.ts tests/runtime.test.ts tests/models.test.ts
 npm run build:local
 # Con Vite local y backend iniciados:
 npx playwright test
@@ -131,7 +132,7 @@ PLAYWRIGHT_BASE_URL=http://127.0.0.1:8088 npx playwright test
 npx playwright test --config playwright.pages.config.ts
 ```
 
-La prueba Pages valida ausencia de peticiones a la API, WebGL, controles, persistencia tras recargar, exportación e importación válida/inválida. Las pruebas locales validan interfaz, conexión, errores y persistencia PostgreSQL. La configuración usa Chromium en `/usr/bin/chromium`; adapta `executablePath` o instala el navegador de Playwright en otro equipo.
+La prueba Pages valida ausencia de peticiones a la API, WebGL, controles, persistencia tras recargar, exportación e importación válida/inválida. Las pruebas locales validan interfaz, conexión, errores y persistencia PostgreSQL. `model-proxy.spec.ts` comprueba que un proyecto con modelo de más de 1 MiB atraviesa Nginx y se recupera íntegro; el proxy admite cuerpos de hasta 10 MiB. La configuración usa Chromium en `/usr/bin/chromium`; adapta `executablePath` o instala el navegador de Playwright en otro equipo.
 
 ## Estructura
 
@@ -205,9 +206,9 @@ Agrega una Cámara IP y conéctala a un puerto libre del switch. **Vista de cám
 Esta entrega amplía las fases 2–6 y añade pruebas y documentación de la fase 7. **No equivale a completar todos los requisitos del prompt maestro.**
 
 - El motor modela ICMP, reenvío, VLAN, DHCP básico y reglas por IP. `traceroute` muestra el recorrido lógico incluyendo switches, sin sondas TTL ni tiempos de red.
-- `nat=true` demuestra traducción de dirección de origen en ICMP y su efecto en reglas posteriores. No implementa tablas PAT con puertos TCP/UDP, expiración de sesiones ni un firewall con estado.
-- DHCP asigna direcciones deterministas sin negociación de broadcast ni expiración de concesiones. No hay DNS/HTTP virtual ni tablas ARP/MAC aprendidas y consultables.
-- La topología es un SVG interactivo sincronizado, sin editor React Flow. Los modelos GLB/GLTF todavía no se importan.
+- `nat=true` demuestra traducción de dirección de origen en ICMP y su efecto en reglas posteriores. El panel de sesiones añade PAT TCP/UDP, respuestas asociadas y caducidad virtual; no implementa un firewall con estado ni la máquina de estados completa de TCP.
+- DHCP asigna direcciones deterministas sin negociación de broadcast ni expiración de concesiones. No hay servicios de aplicación DNS/HTTP. Las tablas ARP/MAC aprendidas se consultan en el panel y la CLI.
+- La topología es un SVG interactivo sincronizado, sin editor React Flow. Se admiten modelos GLB/GLTF autocontenidos dentro de los límites descritos más abajo.
 - Se guarda un proyecto completo como escena JSON en PostgreSQL; faltan CRUD individual de habitaciones/dispositivos y tablas relacionales independientes para cada entidad del dominio. La gestión de múltiples proyectos ya está disponible.
 - Los paneles laterales se redimensionan y ocultan; los apartados inferiores se contraen. La posición libre de la cámara no se persiste. El paquete Three.js/Recharts sigue siendo grande y Vite avisa durante la compilación.
 
@@ -219,10 +220,37 @@ Las pruebas de navegador cubren CLI Java, persistencia de interfaces, WebSocket 
 
 ## Gestión de múltiples proyectos
 
-En **Mis proyectos**, escribe un nombre y pulsa **Nuevo proyecto** para abrir una nueva casa con la topología inicial. El selector recupera cada escena. **Renombrar proyecto** conserva su contenido; **Eliminar proyecto** pide confirmación y elimina únicamente el proyecto seleccionado y sus eventos. `write memory` guarda el proyecto activo. El JSON exportado es una escena portable y puede importarse dentro de cualquiera de los proyectos.
+En **Mis proyectos**, escribe un nombre y pulsa **Nuevo proyecto** para abrir una nueva casa con la topología inicial. El selector recupera cada escena. **Renombrar proyecto** conserva su contenido; **Eliminar proyecto** pide confirmación y elimina únicamente el proyecto seleccionado y sus eventos. `write memory` guarda el proyecto activo. El JSON exportado incluye los modelos personalizados y puede importarse dentro de cualquiera de los proyectos.
 
 Pages actualiza IndexedDB de v1 a v2 conservando la antigua escena de demostración. PostgreSQL aplica Flyway V4 para asociar los eventos a cada proyecto; los eventos anteriores pertenecen a la demostración. No se necesita borrar el volumen ni los datos del navegador.
 
 Pruebas adicionales: `MultipleProjectsTest` comprueba escenas independientes, nombres, borrado y eventos por proyecto; `projects.spec.ts` verifica creación, CLI, reapertura, renombrado y borrado en ambas ediciones; `projects-migration.spec.ts` comprueba la migración del navegador y la conservación de datos antiguos. Para estas últimas: `npx playwright test --config playwright.pages.config.ts` con Pages servido en el puerto 4173 bajo la subruta del repositorio. `project-events.spec.ts` verifica recepción y recuperación de eventos por proyecto en local.
 
-El workflow de Pages comprueba el motor TypeScript, compila la aplicación y ejecuta las tres pruebas de navegador sobre el artefacto estático antes de publicarlo. En CI se descarga Chromium de Playwright; localmente puede seguir usándose `/usr/bin/chromium` o establecer `PLAYWRIGHT_BUNDLED_CHROMIUM=1` tras instalarlo con Playwright.
+El workflow de Pages comprueba el motor TypeScript, compila la aplicación y ejecuta las pruebas de navegador sobre el artefacto estático antes de publicarlo. En CI se descarga Chromium de Playwright; localmente puede seguir usándose `/usr/bin/chromium` o establecer `PLAYWRIGHT_BUNDLED_CHROMIUM=1` tras instalarlo con Playwright.
+
+## ARP, MAC y PAT por sesiones
+
+Abre **ARP, tabla MAC y sesiones PAT**. Un ping válido aprende asociaciones IP/MAC en los extremos de cada tramo de red y entradas MAC/puerto/VLAN en los switches del recorrido de ida y vuelta. **Consultar tablas** muestra las entradas del equipo seleccionado. También funcionan `show arp`, `show mac address-table` y `show ip nat translations` en ambas CLI. Las direcciones MAC son identificadores locales deterministas, no direcciones del equipo físico.
+
+Para comprobar PAT:
+
+1. Selecciona ASA y activa NAT/PAT de salida en su configuración.
+2. Selecciona PC. En el panel de sesiones elige UDP, destino `203.0.113.1` y puertos 12345 → 53; pulsa **Enviar flujo virtual**.
+3. Selecciona ASA y pulsa **Consultar tablas**. Verás la traducción de `192.168.1.101:12345` a `203.0.113.2:40000`.
+4. Envía otro flujo desde Laptop con los mismos puertos: obtiene otro puerto público. Repetir la misma tupla renueva la sesión existente.
+5. Selecciona una sesión y pulsa **Enviar respuesta virtual**. Cambiar el puerto público a otro valor hace que se rechace la respuesta. La sesión identifica protocolo, origen privado, destino remoto y ambos puertos.
+6. **Avanzar 60 segundos** mueve el reloj de simulación. UDP caduca a los 60 s y TCP a los 300 s desde el último envío; ARP/MAC caducan a los 300 s. **Vaciar tablas y sesiones** limpia el estado aprendido.
+
+Las tablas son estado de ejecución en memoria, separado por proyecto. Cambiar dispositivos, interfaces, enlaces o configuración invalida las tablas; no se incluyen en los archivos de proyecto. El servidor conserva hasta 32 contextos y 128 flujos activos por contexto; al reiniciarlo se pierden estas tablas. Pages pierde las tablas al recargar. Los eventos de las acciones se registran en el monitoreo local.
+
+Este modelo educativo observa los caminos validados por el motor y aprende sus tablas; no emula cada trama broadcast, STP, aprendizaje por inundación, negociación TCP, retransmisiones ni servicios escuchando en los puertos. Los flujos TCP/UDP comprueban la conectividad y reglas por IP existentes. Las respuestas PAT deben coincidir con una traducción vigente y tener conectividad de retorno. La traducción inversa recupera el destino privado en cada frontera NAT y conserva la dirección del origen remoto para evaluar el firewall. Las entradas no convierten una red desconectada en una conexión exitosa.
+
+## Importar modelos GLB / GLTF
+
+Selecciona un equipo y abre **Modelos GLB / GLTF**. Importa un `.glb` o `.gltf` 2.0 con todos los buffers y texturas embebidos. Se valida, se ajusta a una unidad de la escena y sustituye la representación de ese equipo. **Quitar modelo personalizado** recupera la geometría original.
+
+Los modelos se conservan con **Guardar proyecto**, `write memory` y la exportación/importación JSON; funcionan en IndexedDB y PostgreSQL. No se envían al motor en cada ping. No necesitan modelos propietarios ni servicios externos.
+
+Límites: 2 MiB por archivo, 8 modelos diferentes, 20 equipos personalizados y 8 MiB de datos base64 en la biblioteca; el proyecto JSON importado puede tener hasta 10 MiB. Se admiten geometría estática, materiales PBR básicos, texturas PNG/JPEG embebidas y extensiones `KHR_materials_unlit`/`KHR_materials_emissive_strength`. No se admiten recursos por URL, Draco, Meshopt, BasisU ni reproducción de animaciones. Se limita la complejidad de las mallas y se liberan geometrías, materiales y texturas al reemplazar o descargar los modelos.
+
+Los fixtures originales `triangle.gltf` y `triangle.glb` son geometrías generadas por el proyecto para las pruebas. Las pruebas verifican persistencia, rechazo de URLs externas, jerarquías inválidas, puertos PAT distintos, respuestas incorrectas, caducidad y paridad Java/TypeScript mediante `runtime-cases.json` y `pat-return-cases.json`. Estos últimos comprueban que el firewall externo recibe el destino público y que el firewall interno puede bloquear el origen remoto después de la traducción inversa.

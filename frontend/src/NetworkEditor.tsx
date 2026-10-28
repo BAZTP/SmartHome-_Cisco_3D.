@@ -1,3 +1,7 @@
+import ModelPanel from "./ModelPanel";
+import { modelSnapshot, useModels } from "./models";
+import RuntimePanel from "./RuntimePanel";
+import { runtime } from "./runtime";
 import AdvancedPanel from "./AdvancedPanel";
 import Telemetry from "./Telemetry";
 import { execute, type Context, commands } from "./cli";
@@ -38,7 +42,12 @@ export default function NetworkEditor() {
   }, [n.selected]);
   async function simulate(ip: string, trace = false) {
     if (!d) throw Error("Selecciona un dispositivo");
-    if (browserEdition) return ping(n, d.id, ip);
+    if (browserEdition)
+      return runtime(n, getActiveProjectId(), {
+        action: "probe",
+        source: d.id,
+        target: ip,
+      }).result!;
     const r = await fetch(
       trace ? "/api/simulation/traceroute" : "/api/simulation/ping",
       {
@@ -78,7 +87,7 @@ export default function NetworkEditor() {
     const text = cmd.trim();
     const network = { devices: n.devices, links: n.links };
     let r: ReturnType<typeof execute>;
-    if (browserEdition) r = execute(network, d.id, context, text);
+    if (browserEdition) r = execute(network, d.id, context, text, projectId);
     else {
       const response = await fetch("/api/cli", {
         method: "POST",
@@ -120,6 +129,7 @@ export default function NetworkEditor() {
       await saveScene(
         {
           version: 1,
+          models: modelSnapshot(r.network.devices.map((d) => d.id)),
           view: scene.view,
           walls: scene.walls,
           selected: scene.selected,
@@ -246,7 +256,12 @@ export default function NetworkEditor() {
               >
                 Rotar 90°
               </button>
-              <button onClick={() => n.remove(d.id)}>
+              <button
+                onClick={() => {
+                  useModels.getState().remove(d.id);
+                  n.remove(d.id);
+                }}
+              >
                 Eliminar dispositivo
               </button>
             </div>
@@ -405,6 +420,8 @@ export default function NetworkEditor() {
         ))}
       </div>
       <AdvancedPanel />
+      <RuntimePanel />
+      <ModelPanel />
       <Telemetry />
       <p>
         Alcance actual: IPv4 educativo con interfaces, VLAN, DHCP, rutas y

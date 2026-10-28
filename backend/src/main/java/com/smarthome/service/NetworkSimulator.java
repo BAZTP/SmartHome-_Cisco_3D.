@@ -1,5 +1,6 @@
 package com.smarthome.service;
 
+import com.smarthome.controller.SimulationController.Hop;
 import com.smarthome.controller.SimulationController.Request;
 import com.smarthome.controller.SimulationController.Result;
 import com.smarthome.dto.NetworkDto.*;
@@ -66,17 +67,31 @@ public class NetworkSimulator {
   }
 
   private record State(
-      String id, List<String> path, int vlan, int incoming, String nextHop, String wireSource) {}
+      String id,
+      List<String> path,
+      int vlan,
+      int incoming,
+      String nextHop,
+      String wireSource,
+      List<Hop> hops) {}
 
   public Result ping(Request r) {
     try {
-      return run(r);
+      return run(r, null, false, true);
     } catch (IllegalArgumentException | NullPointerException e) {
       return fail("Configuración de red inválida");
     }
   }
 
-  private Result run(Request r) {
+  public Result direction(Request r, String sourceAddress, boolean translate) {
+    try {
+      return run(r, sourceAddress, true, translate);
+    } catch (IllegalArgumentException | NullPointerException e) {
+      return fail("Configuración de red inválida");
+    }
+  }
+
+  private Result run(Request r, String sourceAddress, boolean oneWay, boolean translate) {
     var n = r.network();
     var a = n.devices().stream().filter(d -> d.id().equals(r.source())).findFirst().orElse(null);
     var b =
@@ -105,13 +120,15 @@ public class NetworkSimulator {
                                 .anyMatch(p -> p.ip().equals(r.target())))
                 .count()
             > 1) return fail("Dirección IP duplicada");
-    var forward = search(r, a, b, a.ip(), r.target());
-    if (!forward.ok()) return forward;
-    var back = search(r, b, a, r.target(), a.ip());
+    var forward =
+        search(r, a, b, sourceAddress == null ? a.ip() : sourceAddress, r.target(), translate);
+    if (!forward.ok() || oneWay) return forward;
+    var back = search(r, b, a, r.target(), a.ip(), translate);
     return back.ok() ? forward : fail("Sin retorno: " + back.message());
   }
 
-  private Result search(Request req, Device start, Device end, String src, String dst) {
+  private Result search(
+      Request req, Device start, Device end, String src, String dst, boolean translate) {
     var n = req.network();
     var queue = new ArrayDeque<State>();
     queue.add(
@@ -121,7 +138,8 @@ public class NetworkSimulator {
             config(start).interfaces().getFirst().vlan(),
             -1,
             same(start.ip(), dst, start.prefix()) ? dst : config(start).gateway(),
-            src));
+            src,
+            List.of()));
     var seen = new HashSet<String>();
     String reason =
         same(start.ip(), dst, start.prefix())
@@ -148,7 +166,10 @@ public class NetworkSimulator {
       }
       if (d.id().equals(end.id()))
         return new Result(
-            true, "Respuesta ICMP virtual · 32 bytes · recorrido verificado", state.path());
+            true,
+            "Respuesta ICMP virtual · 32 bytes · recorrido verificado",
+            state.path(),
+            state.hops());
       boolean router = d.kind().startsWith("Router") || d.kind().startsWith("Firewall"),
           bridge = d.kind().startsWith("Switch") || d.kind().equals("Access Point");
       if (!d.id().equals(start.id()) && !router && !bridge) continue;
@@ -212,9 +233,17 @@ public class NetworkSimulator {
         if (dest.id().equals(end.id()) && !next.equals(dst)) continue;
         var path = new ArrayList<>(state.path());
         path.add(dest.id());
+        var hops = new ArrayList<>(state.hops());
+        hops.add(new Hop(d.id(), dest.id(), out, in, vlan));
         queue.add(
             new State(
-                dest.id(), path, vlan, in, next, routed && c.nat() ? p.ip() : state.wireSource()));
+                dest.id(),
+                path,
+                vlan,
+                in,
+                next,
+                routed && c.nat() && translate ? p.ip() : state.wireSource(),
+                hops));
       }
     }
     return fail(reason);

@@ -114,6 +114,20 @@ export default function AdvancedPanel() {
               </label>
             </div>
           )}
+          {c &&
+            (d.kind.startsWith("Router") || d.kind.startsWith("Firewall")) && (
+              <label>
+                <input
+                  type="checkbox"
+                  aria-label="NAT/PAT de salida"
+                  checked={c.nat}
+                  onChange={(e) =>
+                    n.update(d.id, { config: { ...c, nat: e.target.checked } })
+                  }
+                />{" "}
+                NAT/PAT de salida (simulado)
+              </label>
+            )}
           <textarea
             aria-label="Configuración de red"
             rows={14}

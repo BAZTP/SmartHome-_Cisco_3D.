@@ -1,3 +1,4 @@
+import { useModels, emptyModels, modelSnapshot } from "./models";
 import ProjectManager from "./ProjectManager";
 import Topology from "./Topology";
 import NetworkEditor from "./NetworkEditor";
@@ -37,6 +38,7 @@ function App() {
   const [busy, setBusy] = useState(false);
   const snapshot = (): SceneSnapshot => ({
     version: 1,
+    models: modelSnapshot(network.devices.map((d) => d.id)),
     view,
     walls,
     selected,
@@ -44,6 +46,7 @@ function App() {
   });
   const restore = (scene: SceneSnapshot) => {
     network.setNetwork(scene.network ?? demo());
+    useModels.getState().restore(scene.models ?? emptyModels());
     useScene.setState({
       view: scene.view,
       walls: scene.walls,
@@ -92,7 +95,7 @@ function App() {
   async function importProject(file?: File) {
     if (!file) return;
     try {
-      if (file.size > 262144) throw Error("El archivo supera 256 KB");
+      if (file.size > 10 * 1024 * 1024) throw Error("El archivo supera 10 MiB");
       restore(validateScene(JSON.parse(await file.text())));
       setOperation("Proyecto importado; pulsa Guardar para conservarlo");
     } catch {

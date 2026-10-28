@@ -19,20 +19,33 @@ public class SimulationController {
     }
   }
 
-  public record Result(boolean ok, String message, List<String> path) {}
+  public record Hop(String from, String to, int out, int incoming, int vlan) {}
 
-  private final com.smarthome.service.NetworkSimulator simulator;
+  public record Result(boolean ok, String message, List<String> path, List<Hop> hops) {
+    public Result(boolean ok, String message, List<String> path) {
+      this(ok, message, path, List.of());
+    }
+  }
+
+  private final com.smarthome.service.RuntimeService runtime;
   private final com.smarthome.service.EventService events;
 
   public SimulationController(
-      com.smarthome.service.NetworkSimulator simulator, com.smarthome.service.EventService events) {
-    this.simulator = simulator;
+      com.smarthome.service.RuntimeService runtime, com.smarthome.service.EventService events) {
+    this.runtime = runtime;
     this.events = events;
   }
 
   @PostMapping("/ping")
   public Result ping(@Valid @RequestBody Request request) {
-    var result = simulator.ping(request);
+    var result =
+        runtime
+            .perform(
+                request.network(),
+                request.projectId(),
+                new com.smarthome.service.RuntimeService.Action(
+                    "probe", request.source(), request.target(), null, null, null, null, null))
+            .result();
     events.record(request.projectId(), request.source(), request.target(), result);
     return result;
   }

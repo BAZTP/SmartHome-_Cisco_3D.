@@ -120,7 +120,15 @@ export function validateConfig(c: Config, d: Device) {
   )
     throw Error("Pool DHCP inválido");
 }
+export type Hop = {
+  from: string;
+  to: string;
+  out: number;
+  incoming: number;
+  vlan: number;
+};
 export type Trace = {
+  hops?: Hop[];
   ok: boolean;
   message: string;
   path: string[];
@@ -142,7 +150,12 @@ export const wifiDistance = (a: Device, b: Device) =>
     roomPositions[a.room][0] + a.x - roomPositions[b.room][0] - b.x,
     roomPositions[a.room][1] + a.z - roomPositions[b.room][1] - b.z,
   );
-export function simulate(n: Network, source: string, target: string): Trace {
+export function simulate(
+  n: Network,
+  source: string,
+  target: string,
+  options: { oneWay?: boolean; translate?: boolean; wireSource?: string } = {},
+): Trace {
   const a = n.devices.find((d) => d.id === source),
     b = n.devices.find(
       (d) =>
@@ -179,6 +192,7 @@ export function simulate(n: Network, source: string, target: string): Trace {
       nextHop: string;
       wireSource: string;
       details: string[];
+      hops: Hop[];
     }[] = [
       {
         id: start.id,
@@ -190,6 +204,7 @@ export function simulate(n: Network, source: string, target: string): Trace {
           ? dstIp
           : configuration(start).gateway,
         details: [],
+        hops: [],
       },
     ];
     const seen = new Set<string>();
@@ -219,6 +234,7 @@ export function simulate(n: Network, source: string, target: string): Trace {
           message: "Respuesta ICMP virtual · 32 bytes · recorrido verificado",
           path: state.path,
           details: state.details,
+          hops: state.hops,
         };
       const router =
         d.kind.startsWith("Router") || d.kind.startsWith("Firewall");
@@ -290,12 +306,19 @@ export function simulate(n: Network, source: string, target: string): Trace {
           path: [...state.path, dest.id],
           vlan,
           incoming: inPort,
+          hops: [
+            ...state.hops,
+            { from: d.id, to: dest.id, out, incoming: inPort, vlan },
+          ],
           nextHop,
-          wireSource: routed && c.nat ? p.ip : state.wireSource,
+          wireSource:
+            routed && c.nat && options.translate !== false
+              ? p.ip
+              : state.wireSource,
           details: [
             ...state.details,
             `${d.name} eth${out} → ${dest.name} eth${inPort} · VLAN ${vlan}`,
-            ...(routed && c.nat
+            ...(routed && c.nat && options.translate !== false
               ? [`NAT/PAT educativo: ${srcIp} → ${p.ip} (ICMP)`]
               : []),
           ],
@@ -304,8 +327,8 @@ export function simulate(n: Network, source: string, target: string): Trace {
     }
     return fail(reason);
   };
-  const forward = search(a, b, a.ip, target);
-  if (!forward.ok) return forward;
+  const forward = search(a, b, options.wireSource ?? a.ip, target);
+  if (!forward.ok || options.oneWay) return forward;
   const back = search(b, a, target, a.ip);
   if (!back.ok) return fail("Sin retorno: " + back.message);
   return forward;
